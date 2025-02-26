@@ -1,8 +1,9 @@
 "use client"
 
 import { useRef } from "react"
+import * as THREE from "three"
 import { useFrame } from "@react-three/fiber"
-import { WALL_THICKNESS, WALL_HEIGHT, WALL_LENGTH } from "@/utils/wall-placement"
+import { WALL_THICKNESS, WALL_HEIGHT, WALL_LENGTH } from "../utils/wall-placement"
 
 interface SimpleWallProps {
   position: [number, number, number]
@@ -19,7 +20,7 @@ export default function SimpleWall({
   isHovered = false,
   isValid = true,
 }: SimpleWallProps) {
-  const ref = useRef()
+  const ref = useRef<THREE.Mesh>(null)
 
   // Animate wall on hover
   useFrame((state) => {
@@ -29,7 +30,7 @@ export default function SimpleWall({
   })
 
   // Wall dimensions based on orientation
-  const dimensions =
+  const dimensions: [number, number, number] =
     orientation === "horizontal"
       ? [WALL_LENGTH, WALL_HEIGHT, WALL_THICKNESS]
       : [WALL_THICKNESS, WALL_HEIGHT, WALL_LENGTH]

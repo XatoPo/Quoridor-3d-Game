@@ -5,7 +5,7 @@ import { Canvas } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import GameBoard from "./game-board"
 import GameUI from "./game-ui"
-import { GameProvider } from "@/context/game-context"
+import { GameProvider } from "../context/game-context"
 
 export default function QuoridorGame() {
   const [isMounted, setIsMounted] = useState(false)

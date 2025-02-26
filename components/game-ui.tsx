@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { useGameContext } from "@/context/game-context"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { useGameContext } from "../context/game-context"
+import { Button } from "./ui/button"
+import { Card } from "./ui/card"
 import { RotateCcw, HelpCircle, X, ChevronUp, ChevronDown } from "lucide-react"
 
 export default function GameUI() {

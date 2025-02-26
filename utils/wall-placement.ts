@@ -1,4 +1,4 @@
-import type * as THREE from "three"
+import * as THREE from "three"
 
 // Tipos para el sistema de coordenadas del tablero
 export interface GridPosition {

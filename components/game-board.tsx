@@ -2,15 +2,16 @@
 
 import { useRef } from "react"
 import { useFrame } from "@react-three/fiber"
-import { useGameContext } from "@/context/game-context"
+import { useGameContext } from "../context/game-context"
 import BoardTile from "./board-tile"
 import PlayerPiece from "./player-piece"
 import SimpleWall from "./simple-wall"
 import WallGrid from "./wall-grid"
+import * as THREE from "three"
 import { Vector3 } from "three"
 
 export default function GameBoard() {
-  const boardRef = useRef()
+  const boardRef = useRef<THREE.Group>(null)
   const { gameState, selectedTile, hoveredWallPosition } = useGameContext()
 
   // Gentle board animation

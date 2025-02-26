@@ -1,8 +1,9 @@
 "use client"
 
 import { useRef } from "react"
+import * as THREE from "three"
 import { useFrame } from "@react-three/fiber"
-import { useGameContext } from "@/context/game-context"
+import { useGameContext } from "../context/game-context"
 
 interface BoardTileProps {
   position: [number, number, number]
@@ -13,7 +14,7 @@ interface BoardTileProps {
 }
 
 export default function BoardTile({ position, tileX, tileZ, isSelected, isValidMove }: BoardTileProps) {
-  const ref = useRef()
+  const ref = useRef<THREE.Mesh>(null)
   const { setSelectedTile, gameState, makeMove } = useGameContext()
 
   // Animate tile on hover or selection

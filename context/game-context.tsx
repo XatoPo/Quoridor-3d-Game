@@ -1,12 +1,15 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import React, { createContext, useContext, useState, type ReactNode } from "react"
 
 // Types
 interface Player {
   x: number
   z: number
   wallsLeft: number
+  isValidWallPlacement: (wallPos: WallPosition) => boolean
+  setHoveredWallPosition: (position: WallPosition | null) => void
+  placeWall: (x: number, z: number, orientation: "horizontal" | "vertical") => void
 }
 
 interface Wall {
@@ -57,10 +60,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [hoveredWallPosition, setHoveredWallPosition] = useState<WallPosition | null>(null)
 
   // Initial game state
-  const initialState = {
+  const initialState: GameState = {
     players: [
-      { x: 4, z: 0, wallsLeft: 10 }, // Player 1 (red)
-      { x: 4, z: 8, wallsLeft: 10 }, // Player 2 (blue)
+      { 
+        x: 4, 
+        z: 0, 
+        wallsLeft: 10, 
+        isValidWallPlacement: () => false,
+        setHoveredWallPosition: () => {},
+        placeWall: () => {},
+      }, // Player 1 (red)
+      { 
+        x: 4, 
+        z: 8, 
+        wallsLeft: 10, 
+        isValidWallPlacement: () => false,
+        setHoveredWallPosition: () => {},
+        placeWall: () => {},
+      }, // Player 2 (blue)
     ],
     currentPlayer: 0,
     walls: [],
@@ -71,12 +88,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
       { x: 4, z: 1 },
     ],
     winner: null,
+    isValidWallPlacement: () => false,
+    setHoveredWallPosition: () => {},
+    placeWall: () => {},
   }
 
   const [state, setState] = useState(initialState)
 
   // Calculate valid moves for current player
-  const calculateValidMoves = (players, walls, currentPlayer) => {
+  const calculateValidMoves = (players: Player[], walls: Wall[], currentPlayer: number) => {
     const player = players[currentPlayer]
     const opponent = players[currentPlayer === 0 ? 1 : 0]
 
@@ -131,7 +151,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }
 
   // Simplified BFS algorithm to check if there's a path to the goal
-  const hasPathToGoal = (player, playerIndex, walls) => {
+  const hasPathToGoal = (player: Player, playerIndex: number, walls: Wall[]) => {
     // Define the goal row based on player index
     const goalZ = playerIndex === 0 ? 8 : 0
 
@@ -147,8 +167,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const current = queue.shift()
 
       // Check if we've reached the goal row
-      if (current.z === goalZ) {
+      if (current && current.z === goalZ) {
         return true
+      }
+
+      if (!current) {
+        continue
       }
 
       // Check all four possible moves
@@ -222,7 +246,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
 
     // Check if wall overlaps with existing walls
-    const overlapsExisting = state.walls.some((wall) => {
+    const overlapsExisting = state.walls.some((wall: Wall) => {
       if (wall.orientation === orientation) {
         if (orientation === "horizontal") {
           return wall.x === x && wall.z === z

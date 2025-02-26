@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 import { useThree, useFrame } from "@react-three/fiber"
 import { Vector3 } from "three"
-import { useGameContext } from "@/context/game-context"
+import { useGameContext } from "../context/game-context"
 
 export default function CameraController() {
   const { camera } = useThree()

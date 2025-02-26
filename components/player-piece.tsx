@@ -2,7 +2,8 @@
 
 import { useRef, useEffect } from "react"
 import { useFrame } from "@react-three/fiber"
-import { Vector3 } from "three"
+import { Vector3, Group } from "three"
+import * as THREE from "three"
 
 interface PlayerPieceProps {
   position: Vector3
@@ -11,7 +12,7 @@ interface PlayerPieceProps {
 }
 
 export default function PlayerPiece({ position, color, isCurrentPlayer }: PlayerPieceProps) {
-  const ref = useRef()
+  const ref = useRef<THREE.Group>(null)
   const targetPosition = useRef(new Vector3(position.x, position.y, position.z))
 
   // Update target position when position prop changes

@@ -1,22 +1,22 @@
 "use client"
 
 import { useRef } from "react"
-import { useThree } from "@react-three/fiber"
-import { useGameContext } from "@/context/game-context"
+import { useThree, ThreeEvent } from "@react-three/fiber"
+import { useGameContext } from "../context/game-context"
 import * as THREE from "three"
-import { snapToWallPosition, isWithinBoard } from "@/utils/wall-placement"
-import { validateWallPlacement } from "@/utils/path-finding"
+import { snapToWallPosition, isWithinBoard } from "../utils/wall-placement"
+import { validateWallPlacement } from "../utils/path-finding"
 
 export default function WallGrid() {
   const { gameState, setHoveredWallPosition } = useGameContext()
-  const gridRef = useRef()
+  const gridRef = useRef<THREE.Group>(null)
   const { camera, size } = useThree()
   const raycaster = new THREE.Raycaster()
   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
   const intersection = new THREE.Vector3()
 
   // Handle wall placement
-  const handleWallPlacement = (event, isClick = false) => {
+  const handleWallPlacement = (event: ThreeEvent<PointerEvent>, isClick = false) => {
     if (!gameState.wallMode) return
     event.stopPropagation()
 
@@ -24,7 +24,7 @@ export default function WallGrid() {
     const x = (event.offsetX / size.width) * 2 - 1
     const y = -(event.offsetY / size.height) * 2 + 1
 
-    raycaster.setFromCamera({ x, y }, camera)
+    raycaster.setFromCamera(new THREE.Vector2(x, y), camera)
 
     if (raycaster.ray.intersectPlane(plane, intersection)) {
       // Adjust for board rotation
@@ -61,7 +61,7 @@ export default function WallGrid() {
         position={[0, 0.01, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
         onPointerMove={handleWallPlacement}
-        onClick={(e) => handleWallPlacement(e, true)}
+        onClick={(e: ThreeEvent<PointerEvent>) => handleWallPlacement(e, true)}
       >
         <planeGeometry args={[9, 9]} />
         <meshBasicMaterial transparent opacity={0} />

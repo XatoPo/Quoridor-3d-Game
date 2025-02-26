@@ -1,4 +1,4 @@
-import QuoridorGame from "@/components/quoridor-game"
+import QuoridorGame from "../components/quoridor-game"
 
 export default function Home() {
   return (

@@ -39,16 +39,26 @@ export function snapToWallPosition(point) {
   }
 }
 
-// Function to check if two walls intersect
+// Function to check if two walls intersect or overlap in the same line
 export function checkWallIntersection(wall1, wall2) {
   if (wall1.orientation === wall2.orientation) {
-    return wall1.x === wall2.x && wall1.z === wall2.z
-  }
-
-  if (wall1.orientation === "horizontal") {
-    return wall1.x === wall2.x && wall1.z === wall2.z
+    if (wall1.orientation === "horizontal") {
+      return wall1.z === wall2.z && Math.abs(wall1.x - wall2.x) < 1
+    } else {
+      return wall1.x === wall2.x && Math.abs(wall1.z - wall2.z) < 1
+    }
   } else {
-    return wall1.x === wall2.x && wall1.z === wall2.z
+    if (wall1.orientation === "horizontal") {
+      return (
+        wall1.x === wall2.x - 0.5 &&
+        wall1.z === wall2.z + 0.5
+      )
+    } else {
+      return (
+        wall1.x === wall2.x + 0.5 &&
+        wall1.z === wall2.z - 0.5
+      )
+    }
   }
 }
 

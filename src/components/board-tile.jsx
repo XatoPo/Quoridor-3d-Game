@@ -6,7 +6,7 @@ import { useGameContext } from "../context/game-context"
 
 export default function BoardTile({ position, tileX, tileZ, isSelected, isValidMove }) {
   const ref = useRef()
-  const { setSelectedTile, gameState, makeMove } = useGameContext()
+  const { setSelectedTile, makeMove } = useGameContext()
 
   // Animate tile on hover or selection
   useFrame(() => {

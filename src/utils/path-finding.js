@@ -86,9 +86,37 @@ export function hasPathToGoal(start, isGoal, walls, boardSize) {
   return false
 }
 
+// Function to check if two walls overlap
+function doWallsOverlap(wall1, wall2) {
+  if (wall1.orientation === wall2.orientation) {
+    return wall1.x === wall2.x && wall1.z === wall2.z
+  }
+
+  if (wall1.orientation === "horizontal") {
+    return (
+      (wall1.x === wall2.x && wall1.z === wall2.z) ||
+      (wall1.x === wall2.x - 1 && wall1.z === wall2.z) ||
+      (wall1.x === wall2.x && wall1.z === wall2.z - 1)
+    )
+  } else {
+    return (
+      (wall1.x === wall2.x && wall1.z === wall2.z) ||
+      (wall1.x === wall2.x && wall1.z === wall2.z - 1) ||
+      (wall1.x === wall2.x - 1 && wall1.z === wall2.z)
+    )
+  }
+}
+
 // Function to validate if a wall placement blocks any player's path
 export function validateWallPlacement(wallPos, players, existingWalls, boardSize) {
   const tempWalls = [...existingWalls, wallPos]
+
+  // Check for wall overlap
+  for (const wall of existingWalls) {
+    if (doWallsOverlap(wall, wallPos)) {
+      return false
+    }
+  }
 
   // Check path for player 1 (goal at z = 8)
   const player1HasPath = hasPathToGoal(players[0], (pos) => pos.z === boardSize - 1, tempWalls, boardSize)

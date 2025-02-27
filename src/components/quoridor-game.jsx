@@ -5,6 +5,7 @@ import { Canvas } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import GameBoard from "./game-board"
 import GameUI from "./game-ui"
+import CameraController from "./camera-controller"
 import { GameProvider } from "../context/game-context"
 
 export default function QuoridorGame() {
@@ -35,8 +36,9 @@ export default function QuoridorGame() {
           <ambientLight intensity={0.7} />
           <directionalLight position={[10, 10, 10]} intensity={1} castShadow />
           <GameBoard />
+          <CameraController />
           <OrbitControls
-            enablePan={false}
+            enablePan={true}
             minPolarAngle={Math.PI / 6}
             maxPolarAngle={Math.PI / 2.5}
             minDistance={8}

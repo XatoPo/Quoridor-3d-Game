@@ -20,28 +20,23 @@ export default function WallGrid() {
     if (!gameState.wallMode) return
     event.stopPropagation()
 
-    // Calculate normalized device coordinates
     const x = (event.offsetX / size.width) * 2 - 1
     const y = -(event.offsetY / size.height) * 2 + 1
 
     raycaster.setFromCamera({ x, y }, camera)
 
     if (raycaster.ray.intersectPlane(plane, intersection)) {
-      // Adjust for board rotation
       if (gridRef.current) {
         intersection.applyMatrix4(gridRef.current.matrixWorld.invert())
       }
 
-      // Get snapped wall position
       const wallPos = snapToWallPosition(intersection)
 
-      // Validate position
       if (!isWithinBoard(wallPos)) {
         if (!isClick) setHoveredWallPosition(null)
         return
       }
 
-      // Validate path and wall placement
       const isValid = validateWallPlacement(wallPos, [gameState.players[0], gameState.players[1]], gameState.walls, 9)
 
       if (isClick) {

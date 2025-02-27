@@ -25,7 +25,7 @@ export function snapToWallPosition(point) {
   // If we are closer to a vertical line
   if (Math.abs(fracX - 0.5) < Math.abs(fracZ - 0.5)) {
     return {
-      x: Math.round(gridX),
+      x: Math.round(gridX) - 0.5,
       z: Math.floor(gridZ),
       orientation: "vertical",
     }
@@ -34,7 +34,7 @@ export function snapToWallPosition(point) {
   // If we are closer to a horizontal line
   return {
     x: Math.floor(gridX),
-    z: Math.round(gridZ),
+    z: Math.round(gridZ) - 0.5,
     orientation: "horizontal",
   }
 }

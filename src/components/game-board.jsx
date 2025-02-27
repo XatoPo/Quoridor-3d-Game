@@ -1,7 +1,6 @@
 "use client"
 
 import { useRef } from "react"
-import { useFrame } from "@react-three/fiber"
 import { useGameContext } from "../context/game-context"
 import BoardTile from "./board-tile"
 import PlayerPiece from "./player-piece"
@@ -13,12 +12,12 @@ export default function GameBoard() {
   const boardRef = useRef()
   const { gameState, selectedTile, hoveredWallPosition } = useGameContext()
 
-  // Gentle board animation
-  useFrame((state, delta) => {
-    if (boardRef.current) {
-      boardRef.current.rotation.y += delta * 0.05
-    }
-  })
+  // Remove infinite rotation
+  // useFrame((state, delta) => {
+  //   if (boardRef.current) {
+  //     boardRef.current.rotation.y += delta * 0.05
+  //   }
+  // })
 
   return (
     <group ref={boardRef}>

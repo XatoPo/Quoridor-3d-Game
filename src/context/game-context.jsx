@@ -160,32 +160,46 @@ export function GameProvider({ children }) {
     return false
   }
 
+  // Check if walls overlap
+  const doWallsOverlap = (wall1, wall2) => {
+    if (wall1.orientation === wall2.orientation) {
+      if (wall1.orientation === "horizontal") {
+        return wall1.z === wall2.z && Math.abs(wall1.x - wall2.x) < 1
+      } else {
+        return wall1.x === wall2.x && Math.abs(wall1.z - wall2.z) < 1
+      }
+    } else {
+      if (wall1.orientation === "horizontal") {
+        return (
+          wall1.x === wall2.x - 0.5 &&
+          wall1.z === wall2.z + 0.5
+        )
+      } else {
+        return (
+          wall1.x === wall2.x + 0.5 &&
+          wall1.z === wall2.z - 0.5
+        )
+      }
+    }
+  }
+
   // Check if a wall placement is valid
   const isValidWallPlacement = (wallPos) => {
     const { x, z, orientation } = wallPos
 
     // Check if wall is within board boundaries
     if (orientation === "horizontal") {
-      if (x < 0 || x > 7 || z <= 0 || z > 8) {
+      if (x < 0 || x > 7.5 || z <= 0 || z > 8) {
         return false
       }
     } else {
-      if (x <= 0 || x > 8 || z < 0 || z > 7) {
+      if (x <= 0 || x > 8 || z < 0 || z > 7.5) {
         return false
       }
     }
 
     // Check if wall overlaps with existing walls
-    const overlapsExisting = state.walls.some((wall) => {
-      if (wall.orientation === orientation) {
-        if (orientation === "horizontal") {
-          return wall.x === x && wall.z === z
-        } else {
-          return wall.x === x && wall.z === z
-        }
-      }
-      return false
-    })
+    const overlapsExisting = state.walls.some((wall) => doWallsOverlap(wall, wallPos))
 
     if (overlapsExisting) {
       return false
@@ -263,14 +277,14 @@ export function GameProvider({ children }) {
   // Place a wall
   const placeWall = (x, z, orientation) => {
     if (state.winner !== null || !state.wallMode) return
-
+  
     const wallPos = { x, z, orientation }
-
+  
     // Check if wall placement is valid
     if (!isValidWallPlacement(wallPos)) {
       return
     }
-
+  
     // Update walls and player's wall count
     const newWalls = [...state.walls, wallPos]
     const newPlayers = [...state.players]
@@ -278,13 +292,13 @@ export function GameProvider({ children }) {
       ...newPlayers[state.currentPlayer],
       wallsLeft: newPlayers[state.currentPlayer].wallsLeft - 1,
     }
-
+  
     // Switch to next player
     const nextPlayer = state.currentPlayer === 0 ? 1 : 0
-
+  
     // Calculate valid moves for next player
     const validMoves = calculateValidMoves(newPlayers, newWalls, nextPlayer)
-
+  
     setState({
       ...state,
       players: newPlayers,
@@ -292,7 +306,7 @@ export function GameProvider({ children }) {
       currentPlayer: nextPlayer,
       validMoves,
     })
-
+  
     // Clear selection
     setHoveredWallPosition(null)
   }

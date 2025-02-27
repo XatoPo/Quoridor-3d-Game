@@ -1,6 +1,6 @@
 # Quoridor 3D - Juego de Estrategia en la Web 🏆🎲
 
-![Quoridor 3D](https://commons.wikimedia.org/wiki/File:Quoridor_1.jpg#/media/Archivo:Quoridor_1.jpg)  
+![Quoridor 3D](https://upload.wikimedia.org/wikipedia/commons/8/84/Quoridor_1.jpg)
 **Versión web interactiva y visualmente atractiva de Quoridor, desarrollada con tecnologías modernas.**
 
 ---

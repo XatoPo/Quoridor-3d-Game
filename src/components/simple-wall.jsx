@@ -2,7 +2,10 @@
 
 import { useRef } from "react"
 import { useFrame } from "@react-three/fiber"
-import { WALL_THICKNESS, WALL_HEIGHT, WALL_LENGTH } from "../utils/wall-placement"
+
+const WALL_THICKNESS = 0.1
+const WALL_HEIGHT = 0.4
+const WALL_LENGTH = 2
 
 export default function SimpleWall({ position, orientation, isPlaced, isHovered = false, isValid = true }) {
   const ref = useRef()
@@ -31,11 +34,11 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
 
   const opacity = isPlaced ? 1 : isHovered ? 0.8 : 0.5
 
-  // Adjust position to align with grid lines
+  // Adjust position to align perfectly with grid
   const adjustedPosition = [
-    position[0] + (orientation === "horizontal" ? 0.5 : 0),
+    position[0] + (orientation === "horizontal" ? 0 : 0),
     position[1],
-    position[2] + (orientation === "vertical" ? 0.5 : 0),
+    position[2] + (orientation === "vertical" ? 0 : 0),
   ]
 
   return (
@@ -52,9 +55,9 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
           {/* First affected cell */}
           <mesh
             position={[
-              position[0] - (orientation === "vertical" ? 0.5 : 0),
+              position[0] + (orientation === "vertical" ? -0.5 : 0),
               0.01,
-              position[2] - (orientation === "horizontal" ? 0.5 : 0),
+              position[2] + (orientation === "horizontal" ? -0.5 : 0),
             ]}
             rotation={[-Math.PI / 2, 0, 0]}
           >
@@ -79,4 +82,3 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
     </group>
   )
 }
-

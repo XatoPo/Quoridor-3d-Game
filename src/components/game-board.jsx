@@ -12,13 +12,6 @@ export default function GameBoard() {
   const boardRef = useRef()
   const { gameState, selectedTile, hoveredWallPosition } = useGameContext()
 
-  // Remove infinite rotation
-  // useFrame((state, delta) => {
-  //   if (boardRef.current) {
-  //     boardRef.current.rotation.y += delta * 0.05
-  //   }
-  // })
-
   return (
     <group ref={boardRef}>
       {/* Board base */}
@@ -48,7 +41,7 @@ export default function GameBoard() {
       {gameState.walls.map((wall, index) => (
         <SimpleWall
           key={`wall-${index}`}
-          position={[wall.x - 4, 0.5, wall.z - 4]}
+          position={[wall.x - 4.5, 0.5, wall.z - 4.5]}
           orientation={wall.orientation}
           isPlaced={true}
         />
@@ -57,7 +50,7 @@ export default function GameBoard() {
       {/* Hovered wall preview */}
       {hoveredWallPosition && (
         <SimpleWall
-          position={[hoveredWallPosition.x - 4, 0.5, hoveredWallPosition.z - 4]}
+          position={[hoveredWallPosition.x - 4.5, 0.5, hoveredWallPosition.z - 4.5]}
           orientation={hoveredWallPosition.orientation}
           isPlaced={false}
           isHovered={true}

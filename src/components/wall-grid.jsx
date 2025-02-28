@@ -4,8 +4,7 @@ import { useRef } from "react"
 import { useThree } from "@react-three/fiber"
 import { useGameContext } from "../context/game-context"
 import * as THREE from "three"
-import { snapToWallPosition, isWithinBoard } from "../utils/wall-placement"
-import { validateWallPlacement } from "../utils/path-finding"
+import { snapToWallPosition } from "../logic/quoridor-logic"
 
 export default function WallGrid() {
   const { gameState, setHoveredWallPosition } = useGameContext()
@@ -32,12 +31,8 @@ export default function WallGrid() {
 
       const wallPos = snapToWallPosition(intersection)
 
-      if (!isWithinBoard(wallPos)) {
-        if (!isClick) setHoveredWallPosition(null)
-        return
-      }
-
-      const isValid = validateWallPlacement(wallPos, [gameState.players[0], gameState.players[1]], gameState.walls, 9)
+      // Check if wall position is valid
+      const isValid = gameState.isValidWallPlacement(wallPos)
 
       if (isClick) {
         if (isValid) {

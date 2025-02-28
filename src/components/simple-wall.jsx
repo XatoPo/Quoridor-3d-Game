@@ -5,9 +5,9 @@ import { useFrame } from "@react-three/fiber"
 
 const WALL_THICKNESS = 0.1
 const WALL_HEIGHT = 0.4
-const WALL_LENGTH = 2
+const WALL_LENGTH = 1.8 // Slightly shorter than 2 to avoid overlap
 
-export default function SimpleWall({ position, orientation, isPlaced, isHovered = false, isValid = true }) {
+export default function SimpleWall({ position, orientation, isPlaced, isHovered = false, isValid = true, color }) {
   const ref = useRef()
 
   // Animate wall on hover
@@ -23,22 +23,13 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
       ? [WALL_LENGTH, WALL_HEIGHT, WALL_THICKNESS]
       : [WALL_THICKNESS, WALL_HEIGHT, WALL_LENGTH]
 
-  // Wall color based on state
-  const color = isPlaced
-    ? "#B19CD9" // Placed wall - pastel purple
-    : isHovered
-      ? isValid
-        ? "#A8E6CF"
-        : "#FFB7B2" // Valid: pastel green, Invalid: pastel red
-      : "#F56565" // Default
-
   const opacity = isPlaced ? 1 : isHovered ? 0.8 : 0.5
 
-  // Adjust position to align perfectly with grid
+  // Adjust position to align with grid intersections
   const adjustedPosition = [
-    position[0] + (orientation === "horizontal" ? 0 : 0),
+    position[0] + (orientation === "horizontal" ? 0.5 : 0),
     position[1],
-    position[2] + (orientation === "vertical" ? 0 : 0),
+    position[2] + (orientation === "vertical" ? 0.5 : 0),
   ]
 
   return (
@@ -62,7 +53,7 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
             rotation={[-Math.PI / 2, 0, 0]}
           >
             <planeGeometry args={[0.9, 0.9]} />
-            <meshBasicMaterial color={isValid ? "#A8E6CF" : "#FFB7B2"} transparent opacity={0.3} />
+            <meshBasicMaterial color={isValid ? "#86EFAC" : "#FCA5A5"} transparent opacity={0.3} />
           </mesh>
 
           {/* Second affected cell */}
@@ -75,7 +66,7 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
             rotation={[-Math.PI / 2, 0, 0]}
           >
             <planeGeometry args={[0.9, 0.9]} />
-            <meshBasicMaterial color={isValid ? "#A8E6CF" : "#FFB7B2"} transparent opacity={0.3} />
+            <meshBasicMaterial color={isValid ? "#86EFAC" : "#FCA5A5"} transparent opacity={0.3} />
           </mesh>
         </group>
       )}

@@ -4,7 +4,7 @@ import { useRef } from "react"
 import { useFrame } from "@react-three/fiber"
 import { useGameContext } from "../context/game-context"
 
-export default function BoardTile({ position, tileX, tileZ, isSelected, isValidMove }) {
+export default function BoardTile({ position, tileX, tileZ, color, isSelected, isValidMove }) {
   const ref = useRef()
   const { setSelectedTile, makeMove } = useGameContext()
 
@@ -23,17 +23,15 @@ export default function BoardTile({ position, tileX, tileZ, isSelected, isValidM
 
   // Determine tile color based on state
   const getTileColor = () => {
-    if (isSelected) return "#FFD3B6" // Pastel orange for selected
-    if (isValidMove) return "#A8E6CF" // Pastel green for valid moves
-    return (tileX + tileZ) % 2 === 0 ? "#FDFFCD" : "#D4F0F0" // Pastel checkerboard pattern
+    if (isSelected) return "#FCA5A5" // Light red for selected
+    if (isValidMove) return "#86EFAC" // Light green for valid moves
+    return color // Use provided color (including goal row colors)
   }
 
   const handleClick = () => {
-    // If it's a valid move, make the move
     if (isValidMove) {
       makeMove(tileX, tileZ)
     } else {
-      // Otherwise just select the tile
       setSelectedTile({ x: tileX, z: tileZ })
     }
   }
@@ -45,4 +43,3 @@ export default function BoardTile({ position, tileX, tileZ, isSelected, isValidM
     </mesh>
   )
 }
-

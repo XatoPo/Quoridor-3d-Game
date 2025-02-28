@@ -22,6 +22,10 @@ export default function WallGrid() {
     const x = (event.offsetX / size.width) * 2 - 1
     const y = -(event.offsetY / size.height) * 2 + 1
 
+    console.group("Wall Placement Debug")
+    console.log("Mouse coordinates:", { x, y })
+    console.log("Screen size:", size)
+
     raycaster.setFromCamera({ x, y }, camera)
 
     if (raycaster.ray.intersectPlane(plane, intersection)) {
@@ -29,18 +33,49 @@ export default function WallGrid() {
         intersection.applyMatrix4(gridRef.current.matrixWorld.invert())
       }
 
-      const wallPos = snapToWallPosition(intersection)
+      console.log("Intersection point:", {
+        x: intersection.x,
+        z: intersection.z,
+      })
 
-      // Check if wall position is valid
-      const isValid = gameState.isValidWallPlacement(wallPos)
+      const wallPos = snapToWallPosition(intersection)
+      console.log("Snapped wall position:", wallPos)
+
+      // Debug visualization of affected grid cells
+      const affectedCells = getAffectedCells(wallPos)
+      console.log("Affected cells:", affectedCells)
 
       if (isClick) {
-        if (isValid) {
+        if (gameState.isValidWallPlacement(wallPos)) {
+          console.log("Placing wall at:", wallPos)
           gameState.placeWall(wallPos.x, wallPos.z, wallPos.orientation)
+        } else {
+          console.log("Invalid wall placement")
         }
       } else {
         setHoveredWallPosition(wallPos)
       }
+    }
+
+    console.groupEnd()
+  }
+
+  // Helper function to get affected grid cells for visualization
+  const getAffectedCells = (wallPos) => {
+    if (wallPos.orientation === "horizontal") {
+      return [
+        { x: wallPos.x, z: wallPos.z - 1 },
+        { x: wallPos.x + 1, z: wallPos.z - 1 },
+        { x: wallPos.x, z: wallPos.z },
+        { x: wallPos.x + 1, z: wallPos.z },
+      ]
+    } else {
+      return [
+        { x: wallPos.x - 1, z: wallPos.z },
+        { x: wallPos.x - 1, z: wallPos.z + 1 },
+        { x: wallPos.x, z: wallPos.z },
+        { x: wallPos.x, z: wallPos.z + 1 },
+      ]
     }
   }
 
@@ -57,7 +92,7 @@ export default function WallGrid() {
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
 
-      {/* Grid lines for wall placement positions */}
+      {/* Grid lines for wall placement - adjusted to show exact placement positions */}
       {Array.from({ length: 8 }).map((_, i) => (
         <group key={i}>
           {/* Vertical lines */}
@@ -85,4 +120,3 @@ export default function WallGrid() {
     </group>
   )
 }
-

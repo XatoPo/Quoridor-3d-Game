@@ -25,11 +25,11 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
 
   const opacity = isPlaced ? 1 : isHovered ? 0.8 : 0.5
 
-  // Adjust position to align with grid intersections
+  // Adjust position to align with the gaps between tiles
   const adjustedPosition = [
-    position[0] + (orientation === "horizontal" ? 0.5 : 0),
+    position[0] + (orientation === "horizontal" ? 0.45 : 0),
     position[1],
-    position[2] + (orientation === "vertical" ? 0.5 : 0),
+    position[2] + (orientation === "vertical" ? 0.45 : 0),
   ]
 
   return (
@@ -46,9 +46,9 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
           {/* First affected cell */}
           <mesh
             position={[
-              position[0] + (orientation === "vertical" ? -0.5 : 0),
+              position[0] + (orientation === "vertical" ? -0.45 : 0),
               0.01,
-              position[2] + (orientation === "horizontal" ? -0.5 : 0),
+              position[2] + (orientation === "horizontal" ? -0.45 : 0),
             ]}
             rotation={[-Math.PI / 2, 0, 0]}
           >
@@ -59,9 +59,9 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
           {/* Second affected cell */}
           <mesh
             position={[
-              position[0] + (orientation === "vertical" ? 0.5 : 0),
+              position[0] + (orientation === "vertical" ? 0.45 : 0),
               0.01,
-              position[2] + (orientation === "horizontal" ? 0.5 : 0),
+              position[2] + (orientation === "horizontal" ? 0.45 : 0),
             ]}
             rotation={[-Math.PI / 2, 0, 0]}
           >
@@ -73,3 +73,4 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
     </group>
   )
 }
+

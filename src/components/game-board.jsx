@@ -67,21 +67,29 @@ export default function GameBoard() {
       {/* Wall placement grid */}
       <WallGrid />
 
-      {/* Placed walls */}
+      {/* Placed walls - Ajustada la posición para alinear con la cuadrícula */}
       {gameState.walls.map((wall, index) => (
         <SimpleWall
           key={`wall-${index}`}
-          position={[wall.x - 4, 0.5, wall.z - 4]}
+          position={[
+            wall.x - 4 + (wall.orientation === "vertical" ? 0.5 : 0),
+            0.5,
+            wall.z - 4 + (wall.orientation === "horizontal" ? 0.5 : 0),
+          ]}
           orientation={wall.orientation}
           isPlaced={true}
           color={COLORS.walls.placed}
         />
       ))}
 
-      {/* Hovered wall preview */}
+      {/* Hovered wall preview - Ajustada la posición para alinear con la cuadrícula */}
       {hoveredWallPosition && (
         <SimpleWall
-          position={[hoveredWallPosition.x - 4, 0.5, hoveredWallPosition.z - 4]}
+          position={[
+            hoveredWallPosition.x - 4 + (hoveredWallPosition.orientation === "vertical" ? 0.5 : 0),
+            0.5,
+            hoveredWallPosition.z - 4 + (hoveredWallPosition.orientation === "horizontal" ? 0.5 : 0),
+          ]}
           orientation={hoveredWallPosition.orientation}
           isPlaced={false}
           isHovered={true}

@@ -107,7 +107,5 @@ El proyecto se inspiró en la versión física del juego Quoridor, con un enfoqu
 
 ## 📜 Licencia
 
-Este proyecto está bajo la licencia **MIT**.
-
 📩 _Desarrollado con pasión por Flavio Villanueva Medina_
 

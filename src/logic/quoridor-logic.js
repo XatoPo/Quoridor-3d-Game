@@ -87,11 +87,16 @@ export function doWallsOverlap(wall1, wall2) {
 
 /**
  * Checks if a wall blocks the movement between two adjacent cells
- * Updated to handle diagonal walls
+ * Updated to align logical blocking with visual position
  */
 export function isMovementBlocked(fromX, fromZ, toX, toZ, walls) {
+  console.group("Movement Block Check")
+  console.log("Checking movement from:", { x: fromX, z: fromZ }, "to:", { x: toX, z: toZ })
+
   // Only check adjacent cells (one step in any direction)
   if (Math.abs(fromX - toX) + Math.abs(fromZ - toZ) !== 1) {
+    console.log("Not adjacent movement")
+    console.groupEnd()
     return false
   }
 
@@ -99,19 +104,34 @@ export function isMovementBlocked(fromX, fromZ, toX, toZ, walls) {
   if (fromZ === toZ) {
     const minX = Math.min(fromX, toX)
     // Check for vertical walls between these cells
-    return walls.some(
-      (wall) => wall.orientation === "vertical" && wall.x === minX + 1 && wall.z <= fromZ && wall.z + 1 >= fromZ,
-    )
+    const isBlocked = walls.some((wall) => {
+      const blocks = wall.orientation === "vertical" && wall.x === minX && wall.z <= fromZ && wall.z + 1 >= fromZ
+      if (blocks) {
+        console.log("Blocked by vertical wall:", wall)
+      }
+      return blocks
+    })
+    console.log("Horizontal movement blocked:", isBlocked)
+    console.groupEnd()
+    return isBlocked
   }
   // Moving vertically
   else if (fromX === toX) {
     const minZ = Math.min(fromZ, toZ)
     // Check for horizontal walls between these cells
-    return walls.some(
-      (wall) => wall.orientation === "horizontal" && wall.z === minZ + 1 && wall.x <= fromX && wall.x + 1 >= fromX,
-    )
+    const isBlocked = walls.some((wall) => {
+      const blocks = wall.orientation === "horizontal" && wall.z === minZ && wall.x <= fromX && wall.x + 1 >= fromX
+      if (blocks) {
+        console.log("Blocked by horizontal wall:", wall)
+      }
+      return blocks
+    })
+    console.log("Vertical movement blocked:", isBlocked)
+    console.groupEnd()
+    return isBlocked
   }
 
+  console.groupEnd()
   return false
 }
 
@@ -374,6 +394,7 @@ export function placeWall(x, z, orientation, gameState) {
 
 /**
  * Snaps a point to the nearest valid wall position
+ * Updated to align with visual positions
  */
 export function snapToWallPosition(point) {
   // Convert from Three.js coordinates to grid coordinates
@@ -396,7 +417,7 @@ export function snapToWallPosition(point) {
   if (fracX < fracZ) {
     // Vertical wall
     wallPos = {
-      x: snapX,
+      x: snapX - 1,
       z: Math.floor(gridZ),
       orientation: "vertical",
     }
@@ -404,7 +425,7 @@ export function snapToWallPosition(point) {
     // Horizontal wall
     wallPos = {
       x: Math.floor(gridX),
-      z: snapZ,
+      z: snapZ - 1,
       orientation: "horizontal",
     }
   }

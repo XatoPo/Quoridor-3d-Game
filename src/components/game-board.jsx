@@ -67,7 +67,7 @@ export default function GameBoard() {
       {/* Wall placement grid */}
       <WallGrid />
 
-      {/* Placed walls - Ajustada la posición para alinear con la cuadrícula */}
+      {/* Placed walls - Volvemos a la posición visual original */}
       {gameState.walls.map((wall, index) => (
         <SimpleWall
           key={`wall-${index}`}
@@ -82,7 +82,7 @@ export default function GameBoard() {
         />
       ))}
 
-      {/* Hovered wall preview - Ajustada la posición para alinear con la cuadrícula */}
+      {/* Hovered wall preview - Volvemos a la posición visual original */}
       {hoveredWallPosition && (
         <SimpleWall
           position={[

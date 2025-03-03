@@ -50,7 +50,7 @@ export function isWallWithinBoard(wall) {
 
 /**
  * Checks if two walls overlap or intersect
- * Updated to allow T-shaped and end-to-end connections
+ * Updated to prevent mid-wall intersections while allowing end connections
  */
 export function doWallsOverlap(wall1, wall2) {
   // Same orientation walls
@@ -64,26 +64,35 @@ export function doWallsOverlap(wall1, wall2) {
     }
   }
 
-  // Different orientations - only check for actual intersections, not end touches
-  if (wall1.orientation === "horizontal") {
-    // wall1 is horizontal, wall2 is vertical
-    // Check if wall2 crosses through wall1
-    return (
-      wall2.x > wall1.x &&
-      wall2.x < wall1.x + 1 &&
-      wall1.z > wall2.z &&
-      wall1.z < wall2.z + 1
-    )
-  } else {
-    // wall1 is vertical, wall2 is horizontal
-    // Check if wall1 crosses through wall2
-    return (
-      wall1.x > wall2.x &&
-      wall1.x < wall2.x + 1 &&
-      wall2.z > wall1.z &&
-      wall2.z < wall1.z + 1
-    )
-  }
+  // Different orientations - check for valid connections and invalid intersections
+  const horizontal = wall1.orientation === "horizontal" ? wall1 : wall2
+  const vertical = wall1.orientation === "horizontal" ? wall2 : wall1
+
+  // Check if walls intersect in their middle sections
+  const intersectsMidSection =
+    vertical.x > horizontal.x &&
+    vertical.x < horizontal.x + 1 &&
+    horizontal.z > vertical.z &&
+    horizontal.z < vertical.z + 1
+
+  // Check if walls connect at their endpoints (valid T-connections)
+  const isValidTConnection =
+    // Vertical wall's top end connects to horizontal wall
+    (vertical.z + 1 === horizontal.z && vertical.x === horizontal.x) ||
+    (vertical.z + 1 === horizontal.z && vertical.x === horizontal.x + 1) ||
+    // Vertical wall's bottom end connects to horizontal wall
+    (vertical.z === horizontal.z && vertical.x === horizontal.x) ||
+    (vertical.z === horizontal.z && vertical.x === horizontal.x + 1) ||
+    // Horizontal wall's left end connects to vertical wall
+    (horizontal.x === vertical.x && horizontal.z === vertical.z) ||
+    (horizontal.x === vertical.x && horizontal.z === vertical.z + 1) ||
+    // Horizontal wall's right end connects to vertical wall
+    (horizontal.x + 1 === vertical.x && horizontal.z === vertical.z) ||
+    (horizontal.x + 1 === vertical.x && horizontal.z === vertical.z + 1)
+
+  // Return true if walls intersect in their middle (invalid)
+  // Return false if they have a valid T-connection or don't interact at all
+  return intersectsMidSection && !isValidTConnection
 }
 
 /**
@@ -606,4 +615,3 @@ function debugWallPlacement(wallPos, isValid, gameState) {
 
   console.groupEnd()
 }
-

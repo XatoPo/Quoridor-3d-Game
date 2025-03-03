@@ -29,15 +29,43 @@ export default function PlayerPiece({ position, color, isCurrentPlayer }) {
     }
   })
 
+  // Modelo estilo Clue/Cluedo para las fichas
   return (
     <group ref={ref} position={[position.x, position.y, position.z]} scale={isCurrentPlayer ? 1.2 : 1}>
-      <mesh castShadow>
-        <cylinderGeometry args={[0.3, 0.3, 0.6, 32]} />
-        <meshStandardMaterial color={color} roughness={0.3} metalness={0.2} />
+      {/* Base de la ficha */}
+      <mesh castShadow position={[0, 0, 0]}>
+        <cylinderGeometry args={[0.25, 0.3, 0.1, 32]} />
+        <meshStandardMaterial color={color} metalness={0.3} roughness={0.7} />
       </mesh>
+
+      {/* Cuerpo del personaje */}
+      <mesh castShadow position={[0, 0.3, 0]}>
+        <cylinderGeometry args={[0.2, 0.25, 0.5, 32]} />
+        <meshStandardMaterial color={color} metalness={0.3} roughness={0.7} />
+      </mesh>
+
+      {/* Cabeza */}
+      <mesh castShadow position={[0, 0.65, 0]}>
+        <sphereGeometry args={[0.15, 32, 32]} />
+        <meshStandardMaterial color={color} metalness={0.3} roughness={0.7} />
+      </mesh>
+
+      {/* Sombrero */}
+      <group position={[0, 0.8, 0]}>
+        <mesh castShadow>
+          <cylinderGeometry args={[0.18, 0.18, 0.1, 32]} />
+          <meshStandardMaterial color="#333333" />
+        </mesh>
+        <mesh castShadow position={[0, 0.05, 0]}>
+          <cylinderGeometry args={[0.12, 0.12, 0.1, 32]} />
+          <meshStandardMaterial color="#333333" />
+        </mesh>
+      </group>
+
+      {/* Indicador del jugador actual */}
       {isCurrentPlayer && (
-        <mesh position={[0, 0.5, 0]}>
-          <sphereGeometry args={[0.15, 16, 16]} />
+        <mesh position={[0, 1, 0]}>
+          <sphereGeometry args={[0.08, 16, 16]} />
           <meshStandardMaterial color="#FDFD96" emissive="#FDFD96" emissiveIntensity={0.5} />
         </mesh>
       )}

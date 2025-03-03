@@ -50,39 +50,40 @@ export function isWallWithinBoard(wall) {
 
 /**
  * Checks if two walls overlap or intersect
- * Updated to handle diagonal walls and T-shaped intersections
+ * Updated to allow T-shaped and end-to-end connections
  */
 export function doWallsOverlap(wall1, wall2) {
   // Same orientation walls
   if (wall1.orientation === wall2.orientation) {
     if (wall1.orientation === "horizontal") {
-      // Horizontal walls - check if they're on the same row and touching/overlapping
-      return wall1.z === wall2.z && Math.abs(wall1.x - wall2.x) <= 1
+      // Horizontal walls - check if they're on the same row and overlapping
+      return wall1.z === wall2.z && Math.abs(wall1.x - wall2.x) < 1
     } else {
-      // Vertical walls - check if they're on the same column and touching/overlapping
-      return wall1.x === wall2.x && Math.abs(wall1.z - wall2.z) <= 1
+      // Vertical walls - check if they're on the same column and overlapping
+      return wall1.x === wall2.x && Math.abs(wall1.z - wall2.z) < 1
     }
   }
 
-  // Different orientations - check for T-shaped and diagonal intersections
-  const wall1Start = { x: wall1.x, z: wall1.z }
-  const wall1End = {
-    x: wall1.x + (wall1.orientation === "horizontal" ? 1 : 0),
-    z: wall1.z + (wall1.orientation === "vertical" ? 1 : 0),
+  // Different orientations - only check for actual intersections, not end touches
+  if (wall1.orientation === "horizontal") {
+    // wall1 is horizontal, wall2 is vertical
+    // Check if wall2 crosses through wall1
+    return (
+      wall2.x > wall1.x &&
+      wall2.x < wall1.x + 1 &&
+      wall1.z > wall2.z &&
+      wall1.z < wall2.z + 1
+    )
+  } else {
+    // wall1 is vertical, wall2 is horizontal
+    // Check if wall1 crosses through wall2
+    return (
+      wall1.x > wall2.x &&
+      wall1.x < wall2.x + 1 &&
+      wall2.z > wall1.z &&
+      wall2.z < wall1.z + 1
+    )
   }
-  const wall2Start = { x: wall2.x, z: wall2.z }
-  const wall2End = {
-    x: wall2.x + (wall2.orientation === "horizontal" ? 1 : 0),
-    z: wall2.z + (wall2.orientation === "vertical" ? 1 : 0),
-  }
-
-  // Check if walls intersect
-  return (
-    Math.min(wall1Start.x, wall1End.x) <= Math.max(wall2Start.x, wall2End.x) &&
-    Math.max(wall1Start.x, wall1End.x) >= Math.min(wall2Start.x, wall2End.x) &&
-    Math.min(wall1Start.z, wall1End.z) <= Math.max(wall2Start.z, wall2End.z) &&
-    Math.max(wall1Start.z, wall1End.z) >= Math.min(wall2Start.z, wall2End.z)
-  )
 }
 
 /**
@@ -210,20 +211,33 @@ export function getValidMoves(playerIndex, gameState) {
 
 /**
  * Checks if a player has a path to their goal using BFS
+ * Updated to be more permissive with alternative paths
  */
 export function hasPathToGoal(playerIndex, gameState) {
   const player = gameState.players[playerIndex]
+  const opponent = gameState.players[playerIndex === 0 ? 1 : 0]
   const { walls } = gameState
 
   // Define the goal row based on player index
   const goalZ = playerIndex === 0 ? BOARD_SIZE - 1 : 0
 
-  // Create a queue for BFS
-  const queue = [{ x: player.x, z: player.z }]
+  // Create a queue for BFS with position and path
+  const queue = [
+    {
+      x: player.x,
+      z: player.z,
+      path: [],
+    },
+  ]
 
   // Create a set to track visited positions
   const visited = new Set()
   visited.add(`${player.x},${player.z}`)
+
+  console.group("Path Finding Debug")
+  console.log("Finding path for player:", playerIndex)
+  console.log("Start position:", { x: player.x, z: player.z })
+  console.log("Goal row:", goalZ)
 
   // BFS algorithm
   while (queue.length > 0) {
@@ -231,60 +245,133 @@ export function hasPathToGoal(playerIndex, gameState) {
 
     // Check if we've reached the goal row
     if (current.z === goalZ) {
+      console.log("Found path to goal:", current.path)
+      console.groupEnd()
       return true
     }
 
-    // Check all four possible moves
-    const moves = [
-      { x: current.x + 1, z: current.z }, // Right
-      { x: current.x - 1, z: current.z }, // Left
-      { x: current.x, z: current.z + 1 }, // Down
-      { x: current.x, z: current.z - 1 }, // Up
-    ]
+    // Get all possible moves including jumps
+    const moves = getAllPossibleMoves(current.x, current.z, opponent, walls)
 
     for (const move of moves) {
-      // Skip if out of bounds
-      if (!isWithinBoard(move.x, move.z)) {
-        continue
-      }
-
-      // Skip if already visited
       const moveKey = `${move.x},${move.z}`
-      if (visited.has(moveKey)) {
-        continue
+      if (!visited.has(moveKey)) {
+        visited.add(moveKey)
+        queue.push({
+          x: move.x,
+          z: move.z,
+          path: [...current.path, { x: move.x, z: move.z }],
+        })
       }
-
-      // Check if move is blocked by a wall
-      if (isMovementBlocked(current.x, current.z, move.x, move.z, walls)) {
-        continue
-      }
-
-      visited.add(moveKey)
-      queue.push(move)
     }
   }
 
-  // If we've exhausted all possibilities without reaching the goal
+  console.log("No path found to goal")
+  console.groupEnd()
   return false
 }
 
 /**
+ * Gets all possible moves from a position, including jumps
+ * New helper function to consider all movement possibilities
+ */
+function getAllPossibleMoves(x, z, opponent, walls) {
+  const moves = []
+
+  // Basic orthogonal moves
+  const basicMoves = [
+    { x: x + 1, z }, // Right
+    { x: x - 1, z }, // Left
+    { x, z: z + 1 }, // Down
+    { x, z: z - 1 }, // Up
+  ]
+
+  // Check each basic move
+  for (const move of basicMoves) {
+    if (isValidMove(move.x, move.z, x, z, opponent, walls)) {
+      moves.push(move)
+    }
+  }
+
+  // Check for jump moves if adjacent to opponent
+  if (Math.abs(x - opponent.x) + Math.abs(z - opponent.z) === 1) {
+    // Straight jump
+    const jumpX = opponent.x + (opponent.x - x)
+    const jumpZ = opponent.z + (opponent.z - z)
+
+    if (isWithinBoard(jumpX, jumpZ)) {
+      if (!isMovementBlocked(opponent.x, opponent.z, jumpX, jumpZ, walls)) {
+        moves.push({ x: jumpX, z: jumpZ })
+      } else {
+        // Diagonal jumps when straight jump is blocked
+        const diagonalJumps = [
+          { x: opponent.x + 1, z: opponent.z },
+          { x: opponent.x - 1, z: opponent.z },
+          { x: opponent.x, z: opponent.z + 1 },
+          { x: opponent.x, z: opponent.z - 1 },
+        ]
+
+        for (const jump of diagonalJumps) {
+          if (isValidMove(jump.x, jump.z, opponent.x, opponent.z, { x, z }, walls)) {
+            moves.push(jump)
+          }
+        }
+      }
+    }
+  }
+
+  return moves
+}
+
+/**
+ * Checks if a move is valid
+ * New helper function to validate individual moves
+ */
+function isValidMove(toX, toZ, fromX, fromZ, opponent, walls) {
+  // Check board boundaries
+  if (!isWithinBoard(toX, toZ)) {
+    return false
+  }
+
+  // Check if move is blocked by wall
+  if (isMovementBlocked(fromX, fromZ, toX, toZ, walls)) {
+    return false
+  }
+
+  // Check if destination is occupied by opponent
+  if (toX === opponent.x && toZ === opponent.z) {
+    return false
+  }
+
+  return true
+}
+
+/**
  * Validates if a wall placement follows all game rules
- * Updated to prevent trapping players and handle diagonal walls
+ * Updated to be more permissive with alternative paths
  */
 export function isValidWallPlacement(wallPos, gameState) {
+  console.group("Wall Placement Validation")
+  console.log("Validating wall:", wallPos)
+
   // Check if wall is within board boundaries
   if (!isWallWithinBoard(wallPos)) {
+    console.log("Wall outside board boundaries")
+    console.groupEnd()
     return false
   }
 
   // Check wall count
   if (gameState.players[gameState.currentPlayer].wallsLeft <= 0) {
+    console.log("No walls left")
+    console.groupEnd()
     return false
   }
 
   // Check overlap with existing walls
   if (gameState.walls.some((wall) => doWallsOverlap(wall, wallPos))) {
+    console.log("Wall overlaps with existing wall")
+    console.groupEnd()
     return false
   }
 
@@ -292,11 +379,14 @@ export function isValidWallPlacement(wallPos, gameState) {
   const tempWalls = [...gameState.walls, wallPos]
   const tempGameState = { ...gameState, walls: tempWalls }
 
-  // Check if both players still have a path to their goal
+  // Check paths for both players
   const player1HasPath = hasPathToGoal(0, tempGameState)
-  const player2HasPath = hasPathToGoal(1, tempGameState)
+  console.log("Player 1 has path:", player1HasPath)
 
-  // Wall placement is only valid if both players still have a path
+  const player2HasPath = hasPathToGoal(1, tempGameState)
+  console.log("Player 2 has path:", player2HasPath)
+
+  console.groupEnd()
   return player1HasPath && player2HasPath
 }
 
@@ -516,3 +606,4 @@ function debugWallPlacement(wallPos, isValid, gameState) {
 
   console.groupEnd()
 }
+

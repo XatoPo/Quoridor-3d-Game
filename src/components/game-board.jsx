@@ -6,6 +6,8 @@ import BoardTile from "./board-tile"
 import PlayerPiece from "./player-piece"
 import SimpleWall from "./simple-wall"
 import WallGrid from "./wall-grid"
+import AnimatedBackground from "./animated-background"
+import ConfettiEffect from "./confetti-effect"
 import { Vector3 } from "three"
 
 // Updated color palette
@@ -16,6 +18,13 @@ const COLORS = {
     p1Goal: "#FEE2E2", // Light red for player 1 goal
     p2Goal: "#DBEAFE", // Light blue for player 2 goal
     base: "#F8FAFC", // Off-white base
+    darkMode: {
+      light: "#1E293B", // Dark slate gray
+      dark: "#0F172A", // Darker slate
+      p1Goal: "#7F1D1D", // Dark red
+      p2Goal: "#1E3A8A", // Dark blue
+      base: "#0F172A", // Dark slate
+    },
   },
   players: {
     p1: "#EF4444", // Vibrant red
@@ -32,21 +41,26 @@ const COLORS = {
 
 export default function GameBoard() {
   const boardRef = useRef()
-  const { gameState, selectedTile, hoveredWallPosition } = useGameContext()
+  const { gameState, selectedTile, hoveredWallPosition, isDarkMode } = useGameContext()
 
-  // Helper to determine tile color
+  // Helper to determine tile color with dark mode support
   const getTileColor = (x, z) => {
-    if (z === 0) return COLORS.board.p1Goal // Player 1 goal row
-    if (z === 8) return COLORS.board.p2Goal // Player 2 goal row
-    return (x + z) % 2 === 0 ? COLORS.board.light : COLORS.board.dark
+    const colors = isDarkMode ? COLORS.board.darkMode : COLORS.board
+
+    if (z === 0) return colors.p1Goal // Player 1 goal row
+    if (z === 8) return colors.p2Goal // Player 2 goal row
+    return (x + z) % 2 === 0 ? colors.light : colors.dark
   }
 
   return (
     <group ref={boardRef}>
+      {/* Animated background */}
+      <AnimatedBackground />
+
       {/* Board base */}
       <mesh receiveShadow position={[0, -0.1, 0]}>
         <boxGeometry args={[10, 0.2, 10]} />
-        <meshStandardMaterial color={COLORS.board.base} />
+        <meshStandardMaterial color={isDarkMode ? COLORS.board.darkMode.base : COLORS.board.base} roughness={0.7} />
       </mesh>
 
       {/* Board grid */}
@@ -67,7 +81,7 @@ export default function GameBoard() {
       {/* Wall placement grid */}
       <WallGrid />
 
-      {/* Placed walls - Volvemos a la posición visual original */}
+      {/* Placed walls */}
       {gameState.walls.map((wall, index) => (
         <SimpleWall
           key={`wall-${index}`}
@@ -82,7 +96,7 @@ export default function GameBoard() {
         />
       ))}
 
-      {/* Hovered wall preview - Volvemos a la posición visual original */}
+      {/* Hovered wall preview */}
       {hoveredWallPosition && (
         <SimpleWall
           position={[
@@ -114,15 +128,45 @@ export default function GameBoard() {
         isCurrentPlayer={gameState.currentPlayer === 1}
       />
 
-      {/* Wall counters */}
-      <mesh position={[-5, 0.5, 0]}>
-        <boxGeometry args={[1, gameState.players[0].wallsLeft * 0.1 + 0.1, 1]} />
-        <meshStandardMaterial color={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FCA5A5"} />
-      </mesh>
-      <mesh position={[5, 0.5, 0]}>
-        <boxGeometry args={[1, gameState.players[1].wallsLeft * 0.1 + 0.1, 1]} />
-        <meshStandardMaterial color={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#93C5FD"} />
-      </mesh>
+      {/* Wall counters with improved visuals */}
+      <group position={[-5, 0.5, 0]}>
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[1, 0.1, 1]} />
+          <meshStandardMaterial color={isDarkMode ? "#27272A" : "#F1F5F9"} roughness={0.7} />
+        </mesh>
+        {Array.from({ length: gameState.players[0].wallsLeft }).map((_, i) => (
+          <mesh key={`wall-counter-p1-${i}`} position={[0, 0.05 + i * 0.1, 0]}>
+            <boxGeometry args={[0.8, 0.08, 0.8]} />
+            <meshStandardMaterial
+              color={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FCA5A5"}
+              roughness={0.7}
+              emissive={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FCA5A5"}
+              emissiveIntensity={isDarkMode ? 0.2 : 0}
+            />
+          </mesh>
+        ))}
+      </group>
+
+      <group position={[5, 0.5, 0]}>
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[1, 0.1, 1]} />
+          <meshStandardMaterial color={isDarkMode ? "#27272A" : "#F1F5F9"} roughness={0.7} />
+        </mesh>
+        {Array.from({ length: gameState.players[1].wallsLeft }).map((_, i) => (
+          <mesh key={`wall-counter-p2-${i}`} position={[0, 0.05 + i * 0.1, 0]}>
+            <boxGeometry args={[0.8, 0.08, 0.8]} />
+            <meshStandardMaterial
+              color={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#93C5FD"}
+              roughness={0.7}
+              emissive={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#93C5FD"}
+              emissiveIntensity={isDarkMode ? 0.2 : 0}
+            />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Victory confetti effect */}
+      {gameState.winner !== null && <ConfettiEffect />}
     </group>
   )
 }

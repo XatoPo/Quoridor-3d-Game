@@ -22,10 +22,6 @@ export default function WallGrid() {
     const x = (event.offsetX / size.width) * 2 - 1
     const y = -(event.offsetY / size.height) * 2 + 1
 
-    console.group("Wall Placement Debug")
-    console.log("Mouse coordinates:", { x, y })
-    console.log("Screen size:", size)
-
     raycaster.setFromCamera({ x, y }, camera)
 
     if (raycaster.ray.intersectPlane(plane, intersection)) {
@@ -33,21 +29,13 @@ export default function WallGrid() {
         intersection.applyMatrix4(gridRef.current.matrixWorld.invert())
       }
 
-      console.log("Intersection point:", {
-        x: intersection.x,
-        z: intersection.z,
-      })
-
       const wallPos = snapToWallPosition(intersection)
-      console.log("Snapped wall position:", wallPos)
 
       // Debug visualization of affected grid cells
       const affectedCells = getAffectedCells(wallPos)
-      console.log("Affected cells:", affectedCells)
 
       if (isClick) {
         if (gameState.isValidWallPlacement(wallPos)) {
-          console.log("Placing wall at:", wallPos)
           gameState.placeWall(wallPos.x, wallPos.z, wallPos.orientation)
         } else {
           console.log("Invalid wall placement")
@@ -56,8 +44,6 @@ export default function WallGrid() {
         setHoveredWallPosition(wallPos)
       }
     }
-
-    console.groupEnd()
   }
 
   // Helper function to get affected grid cells for visualization

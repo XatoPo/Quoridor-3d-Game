@@ -1,60 +1,96 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useGameContext } from "../context/game-context"
 import { Button } from "./ui/button"
 import { Card } from "./ui/card"
-import { RotateCcw, HelpCircle, X, ChevronUp, ChevronDown } from "lucide-react"
+import { RotateCcw, HelpCircle, X, ChevronUp, ChevronDown, Volume2, VolumeX, Moon, Sun, Home } from "lucide-react"
 
 // Color palette matching the game board
 const COLORS = {
   ui: {
-    background: "bg-white/90",
-    text: "text-gray-800",
-    border: "border-gray-200",
-    hover: "hover:bg-gray-100",
+    background: "bg-white/90 dark:bg-gray-800/90",
+    text: "text-gray-800 dark:text-gray-100",
+    border: "border-gray-200 dark:border-gray-700",
+    hover: "hover:bg-gray-100 dark:hover:bg-gray-700",
   },
   players: {
     p1: {
       bg: "bg-red-500",
-      text: "text-red-600",
-      light: "bg-red-100",
+      text: "text-red-600 dark:text-red-400",
+      light: "bg-red-100 dark:bg-red-900",
     },
     p2: {
       bg: "bg-blue-500",
-      text: "text-blue-600",
-      light: "bg-blue-100",
+      text: "text-blue-600 dark:text-blue-400",
+      light: "bg-blue-100 dark:bg-blue-900",
     },
   },
   actions: {
-    primary: "bg-purple-600 hover:bg-purple-700 text-white",
-    secondary: "bg-gray-100 hover:bg-gray-200 text-gray-800",
-    outline: "border border-gray-300 hover:bg-gray-100",
+    primary: "bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-600",
+    secondary: "bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200",
+    outline: "border border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700",
   },
 }
 
 export default function GameUI() {
-  const { gameState, resetGame, toggleWallMode } = useGameContext()
+  const {
+    gameState,
+    resetGame,
+    toggleWallMode,
+    isMuted,
+    toggleMuted,
+    isDarkMode,
+    toggleDarkMode,
+    returnToMenu,
+    triggerSound,
+    gameStarted,
+  } = useGameContext()
   const [showRules, setShowRules] = useState(false)
   const [showInfo, setShowInfo] = useState(true)
+  const [showWinner, setShowWinner] = useState(false)
+
+  // Animation for winner announcement
+  useEffect(() => {
+    if (gameState.winner !== null) {
+      setShowWinner(true)
+    } else {
+      setShowWinner(false)
+    }
+  }, [gameState.winner])
 
   const currentPlayer = gameState.currentPlayer === 0 ? "Rojo" : "Azul"
   const wallsLeft = gameState.currentPlayer === 0 ? gameState.players[0].wallsLeft : gameState.players[1].wallsLeft
   const playerColors = gameState.currentPlayer === 0 ? COLORS.players.p1 : COLORS.players.p2
+
+  const handleToggleInfo = () => {
+    setShowInfo(!showInfo)
+    triggerSound()
+  }
+
+  const handleShowRules = () => {
+    setShowRules(true)
+    triggerSound()
+  }
+
+  const handleCloseRules = () => {
+    setShowRules(false)
+    triggerSound()
+  }
 
   return (
     <>
       {/* Game info panel */}
       <div className="absolute top-4 left-4 z-10">
         <Card
-          className={`p-4 ${COLORS.ui.background} ${COLORS.ui.text} shadow-lg transition-all duration-300 ${showInfo ? "w-64" : "w-12"}`}
+          className={`p-4 ${COLORS.ui.background} shadow-lg transition-all duration-300 backdrop-blur ${showInfo ? "w-64" : "w-12"}`}
         >
           <div className="flex justify-between items-center">
-            <h2 className={`font-bold text-lg ${!showInfo && "hidden"}`}>Quoridor 3D</h2>
+            <h2 className={`font-bold text-lg ${COLORS.ui.text} ${!showInfo && "hidden"}`}>Quoridor 3D</h2>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setShowInfo(!showInfo)}
+              onClick={handleToggleInfo}
               className={`${COLORS.ui.text} ${COLORS.ui.hover}`}
             >
               {showInfo ? <ChevronUp /> : <ChevronDown />}
@@ -63,20 +99,20 @@ export default function GameUI() {
 
           {showInfo && (
             <div className="mt-2 space-y-2">
-              <div className="flex justify-between items-center">
-                <span>Turno:</span>
+              <div className={`flex justify-between items-center p-2 rounded ${playerColors.light}`}>
+                <span className={`${COLORS.ui.text}`}>Turno:</span>
                 <span className={`font-bold ${playerColors.text}`}>Jugador {currentPlayer}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Muros restantes:</span>
+              <div className="flex justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                <span className={`${COLORS.ui.text}`}>Muros restantes:</span>
                 <span className="font-bold">{wallsLeft}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Modo:</span>
+              <div className="flex justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                <span className={`${COLORS.ui.text}`}>Modo:</span>
                 <span className="font-bold">{gameState.wallMode ? "Colocar muro" : "Mover ficha"}</span>
               </div>
 
-              <div className="flex space-x-2 mt-4">
+              <div className="flex flex-col gap-2 mt-4">
                 <Button
                   size="sm"
                   variant={gameState.wallMode ? "default" : "outline"}
@@ -85,51 +121,74 @@ export default function GameUI() {
                 >
                   {gameState.wallMode ? "Mover" : "Muro"}
                 </Button>
-                <Button size="sm" variant="outline" className={`flex-1 ${COLORS.actions.outline}`} onClick={resetGame}>
-                  <RotateCcw className="mr-1 h-4 w-4" /> Reiniciar
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className={`flex-1 ${COLORS.actions.outline}`}
+                    onClick={resetGame}
+                  >
+                    <RotateCcw className="mr-1 h-4 w-4" /> Reiniciar
+                  </Button>
+                  <Button variant="outline" size="icon" className={COLORS.actions.outline} onClick={toggleMuted}>
+                    {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                  </Button>
+                  <Button variant="outline" size="icon" className={COLORS.actions.outline} onClick={toggleDarkMode}>
+                    {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
         </Card>
       </div>
 
-      {/* Rules button */}
-      <Button
-        variant="outline"
-        size="icon"
-        className={`absolute top-4 right-4 z-10 ${COLORS.ui.background} ${COLORS.ui.text} ${COLORS.ui.border} ${COLORS.ui.hover}`}
-        onClick={() => setShowRules(true)}
-      >
-        <HelpCircle />
-      </Button>
+      {/* Top right buttons */}
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className={`${COLORS.ui.background} ${COLORS.ui.text} ${COLORS.ui.border} ${COLORS.ui.hover}`}
+          onClick={returnToMenu}
+        >
+          <Home />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className={`${COLORS.ui.background} ${COLORS.ui.text} ${COLORS.ui.border} ${COLORS.ui.hover}`}
+          onClick={handleShowRules}
+        >
+          <HelpCircle />
+        </Button>
+      </div>
 
       {/* Rules modal */}
       {showRules && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-20 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-20 backdrop-blur-sm">
           <Card
-            className={`max-w-lg w-full ${COLORS.ui.background} ${COLORS.ui.text} p-6 relative max-h-[80vh] overflow-y-auto`}
+            className={`max-w-lg w-full ${COLORS.ui.background} p-6 relative max-h-[80vh] overflow-y-auto animate-in fade-in zoom-in duration-300`}
           >
             <Button
               variant="ghost"
               size="icon"
               className={`absolute right-2 top-2 ${COLORS.ui.text} ${COLORS.ui.hover}`}
-              onClick={() => setShowRules(false)}
+              onClick={handleCloseRules}
             >
               <X />
             </Button>
 
-            <h2 className="text-2xl font-bold mb-4 text-purple-600">Reglas de Quoridor</h2>
+            <h2 className="text-2xl font-bold mb-4 text-purple-600 dark:text-purple-400">Reglas de Quoridor</h2>
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-red-500">Objetivo</h3>
-                <p>Ser el primer jugador en llegar a la línea base opuesta del tablero.</p>
+                <h3 className="text-lg font-semibold text-red-500 dark:text-red-400">Objetivo</h3>
+                <p className={COLORS.ui.text}>Ser el primer jugador en llegar a la línea base opuesta del tablero.</p>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-blue-500">Movimientos</h3>
-                <ul className="list-disc pl-5 space-y-1">
+                <h3 className="text-lg font-semibold text-blue-500 dark:text-blue-400">Movimientos</h3>
+                <ul className={`list-disc pl-5 space-y-1 ${COLORS.ui.text}`}>
                   <li>En tu turno, puedes mover tu ficha o colocar un muro.</li>
                   <li>Las fichas se mueven un espacio en horizontal o vertical (no en diagonal).</li>
                   <li>No puedes atravesar muros ni ocupar la misma casilla que otro jugador.</li>
@@ -137,8 +196,8 @@ export default function GameUI() {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-purple-500">Muros</h3>
-                <ul className="list-disc pl-5 space-y-1">
+                <h3 className="text-lg font-semibold text-purple-500 dark:text-purple-400">Muros</h3>
+                <ul className={`list-disc pl-5 space-y-1 ${COLORS.ui.text}`}>
                   <li>Cada jugador comienza con 10 muros.</li>
                   <li>Los muros bloquean el paso pero no pueden cerrar completamente el camino a la meta.</li>
                   <li>Los muros se colocan entre las casillas y ocupan dos espacios.</li>
@@ -146,32 +205,71 @@ export default function GameUI() {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-gray-600">Controles</h3>
-                <ul className="list-disc pl-5 space-y-1">
+                <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-300">Controles</h3>
+                <ul className={`list-disc pl-5 space-y-1 ${COLORS.ui.text}`}>
                   <li>Haz clic en una casilla para mover tu ficha.</li>
                   <li>Cambia al modo "Muro" para colocar muros.</li>
                   <li>Arrastra el ratón para rotar la cámara y ver mejor el tablero.</li>
                 </ul>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-300">Créditos</h3>
+                <p className={`${COLORS.ui.text} text-sm`}>
+                  Juego desarrollado por <span className="font-semibold">Flavio Villanueva Medina</span>
+                </p>
+                <p className={`${COLORS.ui.text} text-sm`}>
+                  Basado en el juego de mesa Quoridor creado por Mirko Marchesi.
+                </p>
               </div>
             </div>
           </Card>
         </div>
       )}
 
-      {/* Game over message */}
-      {gameState.winner !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-20">
-          <Card className={`p-6 ${COLORS.ui.background} ${COLORS.ui.text}`}>
-            <h2 className="text-2xl font-bold mb-4 text-center">
-              ¡Jugador {gameState.winner === 0 ? "Rojo" : "Azul"} ha ganado!
-            </h2>
-            <Button className={COLORS.actions.primary} onClick={resetGame}>
-              Jugar de nuevo
-            </Button>
+      {/* Game over message with enhanced animation */}
+      {showWinner && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-30 animate-in fade-in duration-500">
+          <Card className={`p-8 ${COLORS.ui.background} max-w-md w-full animate-in zoom-in duration-300`}>
+            <div className="text-center">
+              <div
+                className={`w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center ${gameState.winner === 0 ? "bg-red-500" : "bg-blue-500"}`}
+              >
+                <div className="text-4xl animate-bounce">🏆</div>
+              </div>
+
+              <h2 className="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                ¡Victoria!
+              </h2>
+
+              <p
+                className={`text-xl font-medium mb-6 ${gameState.winner === 0 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"}`}
+              >
+                El Jugador {gameState.winner === 0 ? "Rojo" : "Azul"} ha ganado
+              </p>
+
+              <div className="space-y-3">
+                <Button className={`w-full ${COLORS.actions.primary} py-6 text-lg font-bold`} onClick={resetGame}>
+                  Jugar de nuevo
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full border-purple-200 dark:border-gray-700 py-4"
+                  onClick={returnToMenu}
+                >
+                  Volver al menú principal
+                </Button>
+              </div>
+            </div>
           </Card>
+        </div>
+      )}
+      {isMuted && gameStarted && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-yellow-500/80 dark:bg-yellow-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg z-10 flex items-center gap-2">
+          <Volume2 className="h-5 w-5" />
+          <span>Activa el sonido para una mejor experiencia</span>
         </div>
       )}
     </>
   )
 }
-

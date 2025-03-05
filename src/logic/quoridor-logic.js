@@ -36,15 +36,6 @@ export function isWallWithinBoard(wall) {
       ? wall.x >= 0 && wall.x < WALL_GRID_SIZE && wall.z >= 0 && wall.z < WALL_GRID_SIZE
       : wall.x >= 0 && wall.x < WALL_GRID_SIZE && wall.z >= 0 && wall.z < WALL_GRID_SIZE
 
-  console.group("Wall Boundary Check")
-  console.log("Checking wall:", wall)
-  console.log("Is within board:", isValid)
-  console.log("Board limits:", {
-    horizontal: { x: [0, WALL_GRID_SIZE - 1], z: [0, WALL_GRID_SIZE - 1] },
-    vertical: { x: [0, WALL_GRID_SIZE - 1], z: [0, WALL_GRID_SIZE - 1] },
-  })
-  console.groupEnd()
-
   return isValid
 }
 
@@ -100,13 +91,9 @@ export function doWallsOverlap(wall1, wall2) {
  * Updated to align logical blocking with visual position
  */
 export function isMovementBlocked(fromX, fromZ, toX, toZ, walls) {
-  console.group("Movement Block Check")
-  console.log("Checking movement from:", { x: fromX, z: fromZ }, "to:", { x: toX, z: toZ })
 
   // Only check adjacent cells (one step in any direction)
   if (Math.abs(fromX - toX) + Math.abs(fromZ - toZ) !== 1) {
-    console.log("Not adjacent movement")
-    console.groupEnd()
     return false
   }
 
@@ -117,12 +104,9 @@ export function isMovementBlocked(fromX, fromZ, toX, toZ, walls) {
     const isBlocked = walls.some((wall) => {
       const blocks = wall.orientation === "vertical" && wall.x === minX && wall.z <= fromZ && wall.z + 1 >= fromZ
       if (blocks) {
-        console.log("Blocked by vertical wall:", wall)
       }
       return blocks
     })
-    console.log("Horizontal movement blocked:", isBlocked)
-    console.groupEnd()
     return isBlocked
   }
   // Moving vertically
@@ -132,16 +116,11 @@ export function isMovementBlocked(fromX, fromZ, toX, toZ, walls) {
     const isBlocked = walls.some((wall) => {
       const blocks = wall.orientation === "horizontal" && wall.z === minZ && wall.x <= fromX && wall.x + 1 >= fromX
       if (blocks) {
-        console.log("Blocked by horizontal wall:", wall)
       }
       return blocks
     })
-    console.log("Vertical movement blocked:", isBlocked)
-    console.groupEnd()
     return isBlocked
   }
-
-  console.groupEnd()
   return false
 }
 
@@ -243,19 +222,12 @@ export function hasPathToGoal(playerIndex, gameState) {
   const visited = new Set()
   visited.add(`${player.x},${player.z}`)
 
-  console.group("Path Finding Debug")
-  console.log("Finding path for player:", playerIndex)
-  console.log("Start position:", { x: player.x, z: player.z })
-  console.log("Goal row:", goalZ)
-
   // BFS algorithm
   while (queue.length > 0) {
     const current = queue.shift()
 
     // Check if we've reached the goal row
     if (current.z === goalZ) {
-      console.log("Found path to goal:", current.path)
-      console.groupEnd()
       return true
     }
 
@@ -274,9 +246,6 @@ export function hasPathToGoal(playerIndex, gameState) {
       }
     }
   }
-
-  console.log("No path found to goal")
-  console.groupEnd()
   return false
 }
 
@@ -360,27 +329,18 @@ function isValidMove(toX, toZ, fromX, fromZ, opponent, walls) {
  * Updated to be more permissive with alternative paths
  */
 export function isValidWallPlacement(wallPos, gameState) {
-  console.group("Wall Placement Validation")
-  console.log("Validating wall:", wallPos)
-
   // Check if wall is within board boundaries
   if (!isWallWithinBoard(wallPos)) {
-    console.log("Wall outside board boundaries")
-    console.groupEnd()
     return false
   }
 
   // Check wall count
   if (gameState.players[gameState.currentPlayer].wallsLeft <= 0) {
-    console.log("No walls left")
-    console.groupEnd()
     return false
   }
 
   // Check overlap with existing walls
   if (gameState.walls.some((wall) => doWallsOverlap(wall, wallPos))) {
-    console.log("Wall overlaps with existing wall")
-    console.groupEnd()
     return false
   }
 
@@ -390,12 +350,8 @@ export function isValidWallPlacement(wallPos, gameState) {
 
   // Check paths for both players
   const player1HasPath = hasPathToGoal(0, tempGameState)
-  console.log("Player 1 has path:", player1HasPath)
 
   const player2HasPath = hasPathToGoal(1, tempGameState)
-  console.log("Player 2 has path:", player2HasPath)
-
-  console.groupEnd()
   return player1HasPath && player2HasPath
 }
 
@@ -448,12 +404,8 @@ export function makeMove(x, z, gameState) {
  * Places a wall for the current player
  */
 export function placeWall(x, z, orientation, gameState) {
-  console.group("Wall Placement")
-  console.log("Attempting to place wall:", { x, z, orientation })
 
   if (gameState.winner !== null || !gameState.wallMode) {
-    console.log("Cannot place wall: game over or not in wall mode")
-    console.groupEnd()
     return gameState
   }
 
@@ -464,8 +416,6 @@ export function placeWall(x, z, orientation, gameState) {
   debugWallPlacement(wallPos, isValid, gameState)
 
   if (!isValid) {
-    console.log("Invalid wall placement")
-    console.groupEnd()
     return gameState
   }
 
@@ -487,7 +437,6 @@ export function placeWall(x, z, orientation, gameState) {
   }
 
   debugBoard(nextGameState, "After wall placement")
-  console.groupEnd()
   return nextGameState
 }
 
@@ -499,10 +448,6 @@ export function snapToWallPosition(point) {
   // Convert from Three.js coordinates to grid coordinates
   const gridX = point.x + 4
   const gridZ = point.z + 4
-
-  console.group("Wall Snap Debug")
-  console.log("Original point:", { x: point.x, z: point.z })
-  console.log("Grid coordinates:", { x: gridX, z: gridZ })
 
   // Find the nearest wall position
   const snapX = Math.round(gridX)
@@ -528,11 +473,6 @@ export function snapToWallPosition(point) {
       orientation: "horizontal",
     }
   }
-
-  console.log("Snapped wall position:", wallPos)
-  console.log("Wall orientation:", wallPos.orientation)
-  console.groupEnd()
-
   return wallPos
 }
 
@@ -540,7 +480,6 @@ export function snapToWallPosition(point) {
  * Debug helper to visualize the board state
  */
 function debugBoard(gameState, message = "") {
-  console.group(`Board State: ${message}`)
 
   // Create visual representation of the board
   const boardVisual = Array(BOARD_SIZE)
@@ -566,22 +505,6 @@ function debugBoard(gameState, message = "") {
       }
     }
   })
-
-  // Print board
-  console.log("  0 1 2 3 4 5 6 7 8")
-  boardVisual.forEach((row, idx) => {
-    console.log(`${idx} ${row.join(" ")}`)
-  })
-
-  console.log("\nGame State Details:")
-  console.log("Current Player:", gameState.currentPlayer)
-  console.log("Wall Mode:", gameState.wallMode)
-  console.log("Player 1 Walls:", gameState.players[0].wallsLeft)
-  console.log("Player 2 Walls:", gameState.players[1].wallsLeft)
-  console.log("Valid Moves:", gameState.validMoves)
-  console.log("Walls:", gameState.walls)
-
-  console.groupEnd()
 }
 
 /**

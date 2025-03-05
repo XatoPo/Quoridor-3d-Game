@@ -10,6 +10,11 @@ const GameContext = createContext(undefined)
 export function GameProvider({ children }) {
   const [selectedTile, setSelectedTile] = useState(null)
   const [hoveredWallPosition, setHoveredWallPosition] = useState(null)
+  const [gameStarted, setGameStarted] = useState(false)
+  const [isMuted, setIsMuted] = useState(true) // Modificar la inicialización del estado isMuted para que comience en true (sonido apagado)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [lastAction, setLastAction] = useState(null)
+  const [soundTrigger, setSoundTrigger] = useState(0)
 
   // Initialize game state
   const [state, setState] = useState(QuoridorLogic.createInitialGameState())
@@ -25,11 +30,26 @@ export function GameProvider({ children }) {
     }
   }, [state])
 
+  // Start game
+  const startGame = () => {
+    setGameStarted(true)
+    setLastAction("click")
+  }
+
+  // Return to menu
+  const returnToMenu = () => {
+    setGameStarted(false)
+    resetGame()
+    triggerSound()
+  }
+
   // Make a move
   const makeMove = (x, z) => {
     const newState = QuoridorLogic.makeMove(x, z, state)
     setState(newState)
     setSelectedTile(null)
+    setLastAction("move")
+    setSoundTrigger((prev) => prev + 1) // Añadir esta línea
   }
 
   // Place a wall
@@ -37,6 +57,8 @@ export function GameProvider({ children }) {
     const newState = QuoridorLogic.placeWall(x, z, orientation, state)
     setState(newState)
     setHoveredWallPosition(null)
+    setLastAction("wall")
+    setSoundTrigger((prev) => prev + 1) // Añadir esta línea
   }
 
   // Toggle wall mode
@@ -49,6 +71,7 @@ export function GameProvider({ children }) {
     // Clear selections
     setSelectedTile(null)
     setHoveredWallPosition(null)
+    setLastAction("click")
   }
 
   // Reset game
@@ -56,6 +79,24 @@ export function GameProvider({ children }) {
     setState(QuoridorLogic.createInitialGameState())
     setSelectedTile(null)
     setHoveredWallPosition(null)
+    setLastAction("click")
+  }
+
+  // Toggle muted state
+  const toggleMuted = () => {
+    setIsMuted(!isMuted)
+    setLastAction("click")
+  }
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode)
+    setLastAction("click")
+  }
+
+  // Trigger sound effect
+  const triggerSound = () => {
+    setSoundTrigger((prev) => prev + 1)
   }
 
   // Create the game state object with methods
@@ -71,12 +112,22 @@ export function GameProvider({ children }) {
         gameState,
         selectedTile,
         hoveredWallPosition,
+        gameStarted,
+        isMuted,
+        isDarkMode,
+        lastAction,
+        soundTrigger,
         setSelectedTile,
         setHoveredWallPosition,
+        startGame,
         makeMove,
         placeWall,
         toggleWallMode,
         resetGame,
+        toggleMuted,
+        toggleDarkMode,
+        returnToMenu,
+        triggerSound,
       }}
     >
       {children}
@@ -92,4 +143,3 @@ export const useGameContext = () => {
   }
   return context
 }
-

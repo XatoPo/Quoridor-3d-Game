@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { Canvas } from "@react-three/fiber"
-import { OrbitControls } from "@react-three/drei"
+import { OrbitControls, Stars } from "@react-three/drei"
 import GameBoard from "./game-board"
 import GameUI from "./game-ui"
 import CameraController from "./camera-controller"
-import { GameProvider } from "../context/game-context"
+import WelcomeScreen from "./welcome-screen"
+import SoundEffects from "./sound-effects"
+import { GameProvider, useGameContext } from "../context/game-context"
 
-export default function QuoridorGame() {
+function Game() {
+  const { gameStarted, isDarkMode } = useGameContext()
   const [isMounted, setIsMounted] = useState(false)
 
   // Prevent hydration errors by only rendering the Canvas on the client
@@ -25,16 +28,43 @@ export default function QuoridorGame() {
   }
 
   return (
-    <GameProvider>
-      <div className="w-full h-screen relative">
+    <>
+      <div
+        className={`w-full h-screen relative ${isDarkMode ? "dark" : ""}`}
+        data-theme={isDarkMode ? "dark" : "light"}
+      >
         <Canvas
           shadows
           camera={{ position: [0, 10, 10], fov: 45 }}
-          className="bg-gradient-to-b from-blue-100 to-purple-100"
+          className={`${isDarkMode ? "bg-gradient-to-b from-gray-900 to-purple-950" : "bg-gradient-to-b from-blue-100 to-purple-100"}`}
           dpr={[1, 2]} // Limit pixel ratio for better performance
         >
-          <ambientLight intensity={0.7} />
-          <directionalLight position={[10, 10, 10]} intensity={1} castShadow />
+          {/* Adjusted lighting for better visuals and dark mode support */}
+          <ambientLight intensity={isDarkMode ? 0.4 : 0.7} />
+          <directionalLight
+            position={[10, 10, 10]}
+            intensity={isDarkMode ? 0.8 : 1}
+            castShadow
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+            shadow-camera-far={50}
+            shadow-camera-left={-10}
+            shadow-camera-right={10}
+            shadow-camera-top={10}
+            shadow-camera-bottom={-10}
+          />
+
+          {/* Add point light for more dramatic lighting */}
+          <pointLight
+            position={[0, 8, 0]}
+            intensity={isDarkMode ? 0.8 : 0.5}
+            distance={20}
+            color={isDarkMode ? "#a78bfa" : "#f0f9ff"}
+          />
+
+          {/* Add stars background in dark mode */}
+          {isDarkMode && <Stars radius={100} depth={50} count={1000} factor={4} fade speed={1} />}
+
           <GameBoard />
           <CameraController />
           <OrbitControls
@@ -43,11 +73,28 @@ export default function QuoridorGame() {
             maxPolarAngle={Math.PI / 2.5}
             minDistance={8}
             maxDistance={20}
+            enableDamping={true}
+            dampingFactor={0.05}
           />
         </Canvas>
+
+        {/* Sound effects */}
+        <SoundEffects />
+
+        {/* UI elements */}
         <GameUI />
+
+        {/* Welcome screen */}
+        {!gameStarted && <WelcomeScreen />}
       </div>
-    </GameProvider>
+    </>
   )
 }
 
+export default function QuoridorGame() {
+  return (
+    <GameProvider>
+      <Game />
+    </GameProvider>
+  )
+}

@@ -2,6 +2,7 @@
 
 import { useRef } from "react"
 import { useFrame } from "@react-three/fiber"
+import { useGameContext } from "../context/game-context"
 
 const WALL_THICKNESS = 0.1
 const WALL_HEIGHT = 0.4
@@ -9,11 +10,44 @@ const WALL_LENGTH = 1.8 // Slightly shorter than 2 to avoid overlap
 
 export default function SimpleWall({ position, orientation, isPlaced, isHovered = false, isValid = true, color }) {
   const ref = useRef()
+  const { isDarkMode } = useGameContext()
+  const initialY = position[1]
 
-  // Animate wall on hover
+  // Enhanced animation for walls
   useFrame((state) => {
-    if (ref.current && isHovered) {
-      ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 3) * 0.05
+    if (ref.current) {
+      if (isHovered) {
+        // More dynamic hover animation
+        ref.current.position.y = initialY + Math.sin(state.clock.elapsedTime * 3) * 0.08
+
+        // Slight rotation effect for hover
+        ref.current.rotation.y = Math.sin(state.clock.elapsedTime * 2) * 0.03
+
+        // Scale pulse effect for invalid placements
+        if (!isValid) {
+          ref.current.scale.y = 1 + Math.sin(state.clock.elapsedTime * 5) * 0.1
+        }
+      } else if (isPlaced) {
+        // Small settling animation for newly placed walls
+        const age = state.clock.elapsedTime % 1000 // Avoid growing too large
+        const isNew = age < 0.5
+
+        if (isNew) {
+          // Settling bounce effect
+          const bounceHeight = Math.max(0, 0.2 * (1 - age * 2))
+          ref.current.position.y = initialY + bounceHeight
+
+          // Slight scale effect
+          const scaleEffect = 1 + Math.max(0, 0.2 * (1 - age * 2))
+          ref.current.scale.x = orientation === "horizontal" ? scaleEffect : 1
+          ref.current.scale.z = orientation === "vertical" ? scaleEffect : 1
+        } else {
+          // Reset to normal
+          ref.current.position.y = initialY
+          ref.current.scale.x = 1
+          ref.current.scale.z = 1
+        }
+      }
     }
   })
 
@@ -34,11 +68,27 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
 
   return (
     <group>
-      {/* Main wall */}
+      {/* Main wall with enhanced material */}
       <mesh ref={ref} position={adjustedPosition} castShadow receiveShadow>
         <boxGeometry args={dimensions} />
-        <meshStandardMaterial color={color} transparent opacity={opacity} roughness={0.7} metalness={0.3} />
+        <meshStandardMaterial
+          color={color}
+          transparent
+          opacity={opacity}
+          roughness={0.6}
+          metalness={0.4}
+          emissive={color}
+          emissiveIntensity={isDarkMode ? 0.2 : 0}
+        />
       </mesh>
+
+      {/* Add subtle glowing effect for placed walls in dark mode */}
+      {isPlaced && isDarkMode && (
+        <mesh position={adjustedPosition}>
+          <boxGeometry args={dimensions.map((d) => d * 1.05)} />
+          <meshBasicMaterial color={color} transparent opacity={0.15} />
+        </mesh>
+      )}
 
       {/* Highlight affected grid cells when hovering */}
       {isHovered && (
@@ -53,7 +103,7 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
             rotation={[-Math.PI / 2, 0, 0]}
           >
             <planeGeometry args={[0.9, 0.9]} />
-            <meshBasicMaterial color={isValid ? "#86EFAC" : "#FCA5A5"} transparent opacity={0.3} />
+            <meshBasicMaterial color={isValid ? "#86EFAC" : "#FCA5A5"} transparent opacity={0.4} toneMapped={false} />
           </mesh>
 
           {/* Second affected cell */}
@@ -66,11 +116,10 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
             rotation={[-Math.PI / 2, 0, 0]}
           >
             <planeGeometry args={[0.9, 0.9]} />
-            <meshBasicMaterial color={isValid ? "#86EFAC" : "#FCA5A5"} transparent opacity={0.3} />
+            <meshBasicMaterial color={isValid ? "#86EFAC" : "#FCA5A5"} transparent opacity={0.4} toneMapped={false} />
           </mesh>
         </group>
       )}
     </group>
   )
 }
-

@@ -152,7 +152,7 @@ export default function GameUI() {
       {/* Game info panel */}
       <div className="absolute top-4 left-4 z-10">
         <Card
-          className={`p-4 ${COLORS.ui.background} shadow-lg transition-all duration-300 backdrop-blur ${showInfo ? "w-64" : "w-12"}`}
+          className={`p-4 ${COLORS.ui.background} shadow-lg transition-all duration-300 backdrop-blur ${showInfo ? "w-64" : "w-16"}`}
         >
           <div className="flex justify-between items-center">
             <h2 className={`font-bold text-lg ${COLORS.ui.text} ${!showInfo && "hidden"}`}>Quoridor 3D</h2>

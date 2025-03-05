@@ -9,6 +9,8 @@ import WallGrid from "./wall-grid"
 import AnimatedBackground from "./animated-background"
 import ConfettiEffect from "./confetti-effect"
 import { Vector3 } from "three"
+import * as THREE from "three";
+
 
 // Updated color palette
 const COLORS = {
@@ -118,50 +120,70 @@ export default function GameBoard() {
 
       {/* Player pieces */}
       <PlayerPiece
-        position={new Vector3(gameState.players[0].x - 4, 0.5, gameState.players[0].z - 4)}
+        position={new Vector3(gameState.players[0].x - 4, 0.3, gameState.players[0].z - 4)}
         color={COLORS.players.p1}
         isCurrentPlayer={gameState.currentPlayer === 0}
       />
       <PlayerPiece
-        position={new Vector3(gameState.players[1].x - 4, 0.5, gameState.players[1].z - 4)}
+        position={new Vector3(gameState.players[1].x - 4, 0.3, gameState.players[1].z - 4)}
         color={COLORS.players.p2}
         isCurrentPlayer={gameState.currentPlayer === 1}
       />
 
       {/* Wall counters with improved visuals */}
       <group position={[-5, 0.5, 0]}>
-        <mesh position={[0, 0, 0]}>
+        <mesh position={[0, -0.05, 0]}>
           <boxGeometry args={[1, 0.1, 1]} />
           <meshStandardMaterial color={isDarkMode ? "#27272A" : "#F1F5F9"} roughness={0.7} />
+          <lineSegments>
+            <edgesGeometry args={[new THREE.BoxGeometry(1, 0.1, 1)]} />
+            <lineBasicMaterial color={isDarkMode ? "#F1F5F9" : "#27272A"} />
+          </lineSegments>
         </mesh>
         {Array.from({ length: gameState.players[0].wallsLeft }).map((_, i) => (
-          <mesh key={`wall-counter-p1-${i}`} position={[0, 0.05 + i * 0.1, 0]}>
-            <boxGeometry args={[0.8, 0.08, 0.8]} />
-            <meshStandardMaterial
-              color={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FCA5A5"}
-              roughness={0.7}
-              emissive={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FCA5A5"}
-              emissiveIntensity={isDarkMode ? 0.2 : 0}
-            />
-          </mesh>
+          <group key={`wall-counter-p1-${i}`} position={[0, 0.05 + i * 0.1, 0]}>
+            <mesh>
+              <boxGeometry args={[0.8, 0.08, 0.8]} />
+              <meshStandardMaterial
+                color={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FCA5A5"}
+                roughness={0.7}
+                emissive={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FCA5A5"}
+                emissiveIntensity={isDarkMode ? 0.2 : 0}
+              />
+            </mesh>
+            <lineSegments>
+              <edgesGeometry args={[new THREE.BoxGeometry(0.8, 0.08, 0.8)]} />
+              <lineBasicMaterial color={isDarkMode ? "#27272A" : "#F1F5F9"} />
+            </lineSegments>
+          </group>
         ))}
       </group>
 
       <group position={[5, 0.5, 0]}>
-        <mesh position={[0, 0, 0]}>
+        <mesh position={[0, -0.05, 0]}>
           <boxGeometry args={[1, 0.1, 1]} />
           <meshStandardMaterial color={isDarkMode ? "#27272A" : "#F1F5F9"} roughness={0.7} />
+          <lineSegments>
+            <edgesGeometry args={[new THREE.BoxGeometry(1, 0.1, 1)]} />
+            <lineBasicMaterial color={isDarkMode ? "#F1F5F9" : "#27272A"} />
+          </lineSegments>
         </mesh>
         {Array.from({ length: gameState.players[1].wallsLeft }).map((_, i) => (
-          <mesh key={`wall-counter-p2-${i}`} position={[0, 0.05 + i * 0.1, 0]}>
-            <boxGeometry args={[0.8, 0.08, 0.8]} />
-            <meshStandardMaterial
-              color={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#93C5FD"}
-              roughness={0.7}
-              emissive={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#93C5FD"}
-              emissiveIntensity={isDarkMode ? 0.2 : 0}
-            />
-          </mesh>
+          <group key={`wall-counter-p2-${i}`} position={[0, 0.05 + i * 0.1, 0]}>
+            <mesh>
+              <boxGeometry args={[0.8, 0.08, 0.8]} />
+              <meshStandardMaterial
+                color={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#93C5FD"}
+                roughness={0.7}
+                emissive={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#93C5FD"}
+                emissiveIntensity={isDarkMode ? 0.2 : 0}
+              />
+            </mesh>
+            <lineSegments>
+              <edgesGeometry args={[new THREE.BoxGeometry(0.8, 0.08, 0.8)]} />
+              <lineBasicMaterial color={isDarkMode ? "#27272A" : "#F1F5F9"} />
+            </lineSegments>
+          </group>
         ))}
       </group>
 

@@ -4,7 +4,19 @@ import { useState, useEffect } from "react"
 import { useGameContext } from "../context/game-context"
 import { Button } from "./ui/button"
 import { Card } from "./ui/card"
-import { RotateCcw, HelpCircle, X, ChevronUp, ChevronDown, Volume2, VolumeX, Moon, Sun, Home } from "lucide-react"
+import {
+  RotateCcw,
+  HelpCircle,
+  X,
+  ChevronUp,
+  ChevronDown,
+  Volume2,
+  VolumeX,
+  Moon,
+  Sun,
+  Home,
+  Smartphone,
+} from "lucide-react"
 
 // Color palette matching the game board
 const COLORS = {
@@ -49,6 +61,22 @@ export default function GameUI() {
   const [showRules, setShowRules] = useState(false)
   const [showInfo, setShowInfo] = useState(true)
   const [showWinner, setShowWinner] = useState(false)
+  const [showMobileHelp, setShowMobileHelp] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile devices
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+
+    return () => {
+      window.removeEventListener("resize", checkMobile)
+    }
+  }, [])
 
   // Animation for winner announcement
   useEffect(() => {
@@ -59,23 +87,64 @@ export default function GameUI() {
     }
   }, [gameState.winner])
 
+  // Show mobile help on first visit on mobile
+  useEffect(() => {
+    if (isMobile && gameStarted) {
+      const hasSeenMobileHelp = localStorage.getItem("hasSeenMobileHelp")
+      if (!hasSeenMobileHelp) {
+        setShowMobileHelp(true)
+        localStorage.setItem("hasSeenMobileHelp", "true")
+      }
+    }
+  }, [isMobile, gameStarted])
+
   const currentPlayer = gameState.currentPlayer === 0 ? "Rojo" : "Azul"
   const wallsLeft = gameState.currentPlayer === 0 ? gameState.players[0].wallsLeft : gameState.players[1].wallsLeft
   const playerColors = gameState.currentPlayer === 0 ? COLORS.players.p1 : COLORS.players.p2
 
   const handleToggleInfo = () => {
+    triggerSound() // Add click sound
     setShowInfo(!showInfo)
-    triggerSound()
   }
 
   const handleShowRules = () => {
+    triggerSound() // Add click sound
     setShowRules(true)
-    triggerSound()
   }
 
   const handleCloseRules = () => {
+    triggerSound() // Add click sound
     setShowRules(false)
-    triggerSound()
+  }
+
+  const handleToggleWallMode = () => {
+    triggerSound() // Add click sound
+    toggleWallMode()
+  }
+
+  const handleResetGame = () => {
+    triggerSound() // Add click sound
+    resetGame()
+  }
+
+  const handleToggleMuted = () => {
+    triggerSound() // Add click sound
+    toggleMuted()
+  }
+
+  const handleToggleDarkMode = () => {
+    triggerSound() // Add click sound
+    toggleDarkMode()
+  }
+
+  const handleReturnToMenu = () => {
+    triggerSound() // Add click sound
+    returnToMenu()
+  }
+
+  const handleCloseMobileHelp = () => {
+    triggerSound() // Add click sound
+    setShowMobileHelp(false)
   }
 
   return (
@@ -117,7 +186,7 @@ export default function GameUI() {
                   size="sm"
                   variant={gameState.wallMode ? "default" : "outline"}
                   className={`flex-1 ${gameState.wallMode ? COLORS.actions.primary : COLORS.actions.outline}`}
-                  onClick={toggleWallMode}
+                  onClick={handleToggleWallMode}
                 >
                   {gameState.wallMode ? "Mover" : "Muro"}
                 </Button>
@@ -126,14 +195,19 @@ export default function GameUI() {
                     size="sm"
                     variant="outline"
                     className={`flex-1 ${COLORS.actions.outline}`}
-                    onClick={resetGame}
+                    onClick={handleResetGame}
                   >
                     <RotateCcw className="mr-1 h-4 w-4" /> Reiniciar
                   </Button>
-                  <Button variant="outline" size="icon" className={COLORS.actions.outline} onClick={toggleMuted}>
+                  <Button variant="outline" size="icon" className={COLORS.actions.outline} onClick={handleToggleMuted}>
                     {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                   </Button>
-                  <Button variant="outline" size="icon" className={COLORS.actions.outline} onClick={toggleDarkMode}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className={COLORS.actions.outline}
+                    onClick={handleToggleDarkMode}
+                  >
                     {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                   </Button>
                 </div>
@@ -149,7 +223,7 @@ export default function GameUI() {
           variant="outline"
           size="icon"
           className={`${COLORS.ui.background} ${COLORS.ui.text} ${COLORS.ui.border} ${COLORS.ui.hover}`}
-          onClick={returnToMenu}
+          onClick={handleReturnToMenu}
         >
           <Home />
         </Button>
@@ -210,6 +284,11 @@ export default function GameUI() {
                   <li>Haz clic en una casilla para mover tu ficha.</li>
                   <li>Cambia al modo "Muro" para colocar muros.</li>
                   <li>Arrastra el ratón para rotar la cámara y ver mejor el tablero.</li>
+                  {isMobile && (
+                    <li className="font-semibold text-purple-600 dark:text-purple-400">
+                      En dispositivos móviles, usa los controles táctiles en la parte inferior de la pantalla.
+                    </li>
+                  )}
                 </ul>
               </div>
 
@@ -227,9 +306,59 @@ export default function GameUI() {
         </div>
       )}
 
+      {/* Mobile help modal */}
+      {showMobileHelp && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-20 backdrop-blur-sm">
+          <Card
+            className={`max-w-md w-full ${COLORS.ui.background} p-6 relative animate-in fade-in zoom-in duration-300`}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`absolute right-2 top-2 ${COLORS.ui.text} ${COLORS.ui.hover}`}
+              onClick={handleCloseMobileHelp}
+            >
+              <X />
+            </Button>
+
+            <div className="text-center mb-4">
+              <Smartphone className="w-16 h-16 mx-auto mb-2 text-purple-600 dark:text-purple-400" />
+              <h2 className="text-2xl font-bold text-purple-600 dark:text-purple-400">Controles Móviles</h2>
+            </div>
+
+            <div className="space-y-4">
+              <p className={COLORS.ui.text}>
+                Hemos detectado que estás usando un dispositivo móvil. Para mejorar tu experiencia:
+              </p>
+
+              <ul className={`list-disc pl-5 space-y-2 ${COLORS.ui.text}`}>
+                <li>
+                  Usa los <strong>controles táctiles</strong> en la parte inferior de la pantalla para mover tu ficha y
+                  colocar muros.
+                </li>
+                <li>
+                  Puedes <strong>pellizcar para hacer zoom</strong> y <strong>deslizar para rotar</strong> la cámara.
+                </li>
+                <li>En modo muro, usa el botón de rotación para cambiar la orientación del muro.</li>
+                <li>
+                  Presiona el botón <strong>Colocar Muro</strong> para confirmar la colocación.
+                </li>
+              </ul>
+
+              <Button
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white mt-4"
+                onClick={handleCloseMobileHelp}
+              >
+                Entendido
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Game over message with enhanced animation */}
       {showWinner && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-30 animate-in fade-in duration-500">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-30 backdrop-blur-sm animate-in fade-in duration-500">
           <Card className={`p-8 ${COLORS.ui.background} max-w-md w-full animate-in zoom-in duration-300`}>
             <div className="text-center">
               <div
@@ -249,13 +378,13 @@ export default function GameUI() {
               </p>
 
               <div className="space-y-3">
-                <Button className={`w-full ${COLORS.actions.primary} py-6 text-lg font-bold`} onClick={resetGame}>
+                <Button className={`w-full ${COLORS.actions.primary} py-6 text-lg font-bold`} onClick={handleResetGame}>
                   Jugar de nuevo
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full border-purple-200 dark:border-gray-700 py-4"
-                  onClick={returnToMenu}
+                  onClick={handleReturnToMenu}
                 >
                   Volver al menú principal
                 </Button>
@@ -265,7 +394,7 @@ export default function GameUI() {
         </div>
       )}
       {isMuted && gameStarted && (
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-yellow-500/80 dark:bg-yellow-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg z-10 flex items-center gap-2">
+        <div className="fixed left-1/2 transform -translate-x-1/2 bg-yellow-500/80 dark:bg-yellow-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg z-10 flex items-center gap-2 bottom-4">
           <Volume2 className="h-5 w-5" />
           <span>Activa el sonido para una mejor experiencia</span>
         </div>

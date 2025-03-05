@@ -8,11 +8,27 @@ import GameUI from "./game-ui"
 import CameraController from "./camera-controller"
 import WelcomeScreen from "./welcome-screen"
 import SoundEffects from "./sound-effects"
+import MobileControls from "./mobile-controls" // Import the new mobile controls
 import { GameProvider, useGameContext } from "../context/game-context"
 
 function Game() {
   const { gameStarted, isDarkMode } = useGameContext()
   const [isMounted, setIsMounted] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile devices
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+
+    return () => {
+      window.removeEventListener("resize", checkMobile)
+    }
+  }, [])
 
   // Prevent hydration errors by only rendering the Canvas on the client
   useEffect(() => {
@@ -75,6 +91,11 @@ function Game() {
             maxDistance={20}
             enableDamping={true}
             dampingFactor={0.05}
+            // Adjust touch controls for mobile
+            rotateSpeed={isMobile ? 0.7 : 1}
+            zoomSpeed={isMobile ? 0.7 : 1}
+            panSpeed={isMobile ? 0.7 : 1}
+            touchAction="none"
           />
         </Canvas>
 
@@ -83,6 +104,9 @@ function Game() {
 
         {/* UI elements */}
         <GameUI />
+
+        {/* Mobile controls - only shown on mobile devices */}
+        {gameStarted && <MobileControls />}
 
         {/* Welcome screen */}
         {!gameStarted && <WelcomeScreen />}

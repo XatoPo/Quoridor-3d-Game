@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useEffect, useState } from "react"
 import { useThree } from "@react-three/fiber"
 import { useGameContext } from "../context/game-context"
 import * as THREE from "three"
@@ -13,14 +13,33 @@ export default function WallGrid() {
   const raycaster = new THREE.Raycaster()
   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
   const intersection = new THREE.Vector3()
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile devices
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+
+    return () => {
+      window.removeEventListener("resize", checkMobile)
+    }
+  }, [])
 
   // Handle wall placement
   const handleWallPlacement = (event, isClick = false) => {
-    if (!gameState.wallMode) return
+    if (!gameState.wallMode || isMobile) return // Skip on mobile - use mobile controls instead
     event.stopPropagation()
 
     const x = (event.offsetX / size.width) * 2 - 1
     const y = -(event.offsetY / size.height) * 2 + 1
+
+    console.group("Wall Placement Debug")
+    console.log("Mouse coordinates:", { x, y })
+    console.log("Screen size:", size)
 
     raycaster.setFromCamera({ x, y }, camera)
 
@@ -29,13 +48,21 @@ export default function WallGrid() {
         intersection.applyMatrix4(gridRef.current.matrixWorld.invert())
       }
 
+      console.log("Intersection point:", {
+        x: intersection.x,
+        z: intersection.z,
+      })
+
       const wallPos = snapToWallPosition(intersection)
+      console.log("Snapped wall position:", wallPos)
 
       // Debug visualization of affected grid cells
       const affectedCells = getAffectedCells(wallPos)
+      console.log("Affected cells:", affectedCells)
 
       if (isClick) {
         if (gameState.isValidWallPlacement(wallPos)) {
+          console.log("Placing wall at:", wallPos)
           gameState.placeWall(wallPos.x, wallPos.z, wallPos.orientation)
         } else {
           console.log("Invalid wall placement")
@@ -44,6 +71,8 @@ export default function WallGrid() {
         setHoveredWallPosition(wallPos)
       }
     }
+
+    console.groupEnd()
   }
 
   // Helper function to get affected grid cells for visualization
@@ -89,7 +118,7 @@ export default function WallGrid() {
                 args={[new Float32Array([i - 3.5, 0.01, -4, i - 3.5, 0.01, 4]), 3]}
               />
             </bufferGeometry>
-            <lineBasicMaterial color="#00000015" />
+            <lineBasicMaterial color="#f0f9ff" /> {/* Fix invalid hex color */}
           </line>
           {/* Horizontal lines */}
           <line>
@@ -99,7 +128,7 @@ export default function WallGrid() {
                 args={[new Float32Array([-4, 0.01, i - 3.5, 4, 0.01, i - 3.5]), 3]}
               />
             </bufferGeometry>
-            <lineBasicMaterial color="#00000015" />
+            <lineBasicMaterial color="#f0f9ff" /> {/* Fix invalid hex color */}
           </line>
         </group>
       ))}

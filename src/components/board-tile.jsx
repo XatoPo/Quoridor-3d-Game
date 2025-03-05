@@ -6,7 +6,7 @@ import { useGameContext } from "../context/game-context"
 
 export default function BoardTile({ position, tileX, tileZ, color, isSelected, isValidMove }) {
   const ref = useRef()
-  const { setSelectedTile, makeMove, isDarkMode } = useGameContext()
+  const { setSelectedTile, makeMove, isDarkMode, triggerSound, lastAction, setLastAction } = useGameContext()
 
   // Enhanced tile animations
   useFrame((state) => {
@@ -35,11 +35,14 @@ export default function BoardTile({ position, tileX, tileZ, color, isSelected, i
     return color // Use provided color (including goal row colors)
   }
 
+  // Update the handleClick to trigger movement sound for board tiles
   const handleClick = () => {
     if (isValidMove) {
       makeMove(tileX, tileZ)
+      triggerSound() // Trigger movement sound
     } else {
       setSelectedTile({ x: tileX, z: tileZ })
+      triggerSound() // Trigger regular click sound
     }
   }
 

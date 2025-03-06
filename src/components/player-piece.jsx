@@ -21,7 +21,8 @@ export default function PlayerPiece({ position, color, isCurrentPlayer }) {
   useFrame((state, delta) => {
     if (ref.current) {
       // Smooth movement to target position with more dynamic easing
-      const t = Math.min(0.1 + delta * 2, 1)
+      // Use a more gentle easing to fix the movement issue
+      const t = Math.min(0.05 + delta * 1.5, 1)
       ref.current.position.lerp(targetPosition.current, t)
 
       // Determine if the piece is currently moving
@@ -30,7 +31,7 @@ export default function PlayerPiece({ position, color, isCurrentPlayer }) {
       // More dynamic hover animation for current player's piece
       if (isCurrentPlayer) {
         ref.current.position.y = position.y + Math.sin(state.clock.elapsedTime * 2) * 0.15 + 0.1
-        ref.current.rotation.y += delta * (isMoving ? 4 : 2)
+        ref.current.rotation.y += delta * (isMoving ? 3 : 1.5)
       } else {
         // Subtle animation for non-current player
         ref.current.position.y = position.y + Math.sin(state.clock.elapsedTime * 1.5) * 0.05 + 0.05
@@ -55,7 +56,7 @@ export default function PlayerPiece({ position, color, isCurrentPlayer }) {
           metalness={0.4}
           roughness={0.6}
           emissive={color}
-          emissiveIntensity={isDarkMode ? 0.2 : 0}
+          emissiveIntensity={isDarkMode ? 0.3 : 0}
         />
       </mesh>
 
@@ -67,7 +68,7 @@ export default function PlayerPiece({ position, color, isCurrentPlayer }) {
           metalness={0.3}
           roughness={0.7}
           emissive={color}
-          emissiveIntensity={isDarkMode ? 0.15 : 0}
+          emissiveIntensity={isDarkMode ? 0.25 : 0}
         />
       </mesh>
 
@@ -79,7 +80,7 @@ export default function PlayerPiece({ position, color, isCurrentPlayer }) {
           metalness={0.3}
           roughness={0.7}
           emissive={color}
-          emissiveIntensity={isDarkMode ? 0.15 : 0}
+          emissiveIntensity={isDarkMode ? 0.25 : 0}
         />
       </mesh>
 
@@ -100,9 +101,9 @@ export default function PlayerPiece({ position, color, isCurrentPlayer }) {
         <group>
           <mesh position={[0, 1, 0]}>
             <sphereGeometry args={[0.08, 16, 16]} />
-            <meshStandardMaterial color="#FDFD96" emissive="#FDFD96" emissiveIntensity={0.8} toneMapped={false} />
+            <meshStandardMaterial color="#FDFD96" emissive="#FDFD96" emissiveIntensity={1} toneMapped={false} />
           </mesh>
-          <pointLight position={[0, 1.1, 0]} intensity={0.8} distance={1.5} color="#FDFD96" />
+          <pointLight position={[0, 1.1, 0]} intensity={1} distance={1.5} color="#FDFD96" />
         </group>
       )}
     </group>

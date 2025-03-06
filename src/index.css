@@ -6,65 +6,63 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
-
     --radius: 0.5rem;
+
+    /* Game specific colors */
+    --player-red: 220 38% 98%;
+    --player-blue: 217 91% 60%;
+    --accent-purple: 270 95% 75%;
+    --accent-amber: 43 96% 56%;
+    --success-green: 142 72% 29%;
+    --error-red: 0 84% 60%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
 
-    /* Improved dark mode for the entire app */
+    /* Game specific colors - dark mode */
+    --player-red: 0 84% 60%;
+    --player-blue: 214 100% 50%;
+    --accent-purple: 270 70% 60%;
+    --accent-amber: 36 100% 45%;
+    --success-green: 142 76% 36%;
+    --error-red: 0 74% 42%;
+
     color-scheme: dark;
   }
 }
@@ -96,6 +94,47 @@ body {
   touch-action: none;
 }
 
+/* Button overrides */
+.bg-emerald-600,
+.bg-emerald-700 {
+  background-color: #059669 !important;
+  color: white !important;
+}
+
+.hover\:bg-emerald-700:hover {
+  background-color: #047857 !important;
+}
+
+/* Mobile controls custom styles */
+.mobile-control-btn {
+  @apply shadow-md hover:shadow-lg transition-all border-0 text-white;
+}
+
+.mobile-control-player-btn {
+  @apply mobile-control-btn;
+}
+
+.mobile-control-neutral-btn {
+  @apply mobile-control-btn text-gray-700 dark:text-white;
+}
+
+.mobile-control-accent-btn {
+  @apply mobile-control-btn;
+}
+
+/* Z-index layers */
+.z-notification {
+  z-index: 100;
+}
+
+.z-modal {
+  z-index: 200;
+}
+
+.z-controls {
+  z-index: 50;
+}
+
 /* Enhanced animations */
 @keyframes rotate-slow {
   0% {
@@ -110,7 +149,6 @@ body {
   animation: rotate-slow 10s linear infinite;
 }
 
-/* Custom animation */
 @keyframes spin-slow {
   from {
     transform: rotate(0deg);
@@ -124,11 +162,9 @@ body {
   0%,
   100% {
     opacity: 1;
-    width: 75%;
   }
   50% {
     opacity: 0.7;
-    width: 70%;
   }
 }
 
@@ -138,4 +174,30 @@ body {
 
 .animate-pulse-slow {
   animation: pulse-slow 3s ease-in-out infinite;
+}
+
+@keyframes slide-in-from-bottom {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-from-bottom {
+  animation: slide-in-from-bottom 0.3s ease-out;
+}
+
+/* Improved focus styles */
+button:focus-visible,
+a:focus-visible {
+  @apply outline-none ring-2 ring-purple-500 ring-offset-2;
+}
+
+.dark button:focus-visible,
+.dark a:focus-visible {
+  @apply ring-purple-400 ring-offset-gray-900;
 }

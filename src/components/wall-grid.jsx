@@ -7,7 +7,7 @@ import * as THREE from "three"
 import { snapToWallPosition } from "../logic/quoridor-logic"
 
 export default function WallGrid() {
-  const { gameState, setHoveredWallPosition } = useGameContext()
+  const { gameState, setHoveredWallPosition, isDarkMode } = useGameContext()
   const gridRef = useRef()
   const { camera, size } = useThree()
   const raycaster = new THREE.Raycaster()
@@ -107,7 +107,7 @@ export default function WallGrid() {
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
 
-      {/* Grid lines for wall placement - adjusted to show exact placement positions */}
+      {/* Grid lines for wall placement - adjusted for better visibility */}
       {Array.from({ length: 8 }).map((_, i) => (
         <group key={i}>
           {/* Vertical lines */}
@@ -118,7 +118,7 @@ export default function WallGrid() {
                 args={[new Float32Array([i - 3.5, 0.01, -4, i - 3.5, 0.01, 4]), 3]}
               />
             </bufferGeometry>
-            <lineBasicMaterial color="#f0f9ff" /> {/* Fix invalid hex color */}
+            <lineBasicMaterial color={isDarkMode ? "#94A3B8" : "#475569"} transparent opacity={0.6} />
           </line>
           {/* Horizontal lines */}
           <line>
@@ -128,7 +128,7 @@ export default function WallGrid() {
                 args={[new Float32Array([-4, 0.01, i - 3.5, 4, 0.01, i - 3.5]), 3]}
               />
             </bufferGeometry>
-            <lineBasicMaterial color="#f0f9ff" /> {/* Fix invalid hex color */}
+            <lineBasicMaterial color={isDarkMode ? "#94A3B8" : "#475569"} transparent opacity={0.6} />
           </line>
         </group>
       ))}

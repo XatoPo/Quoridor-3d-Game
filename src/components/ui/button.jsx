@@ -26,4 +26,3 @@ export function Button({ children, className, variant = "default", size = "defau
     </button>
   )
 }
-

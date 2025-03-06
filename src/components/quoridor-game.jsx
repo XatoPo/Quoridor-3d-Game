@@ -52,14 +52,14 @@ function Game() {
         <Canvas
           shadows
           camera={{ position: [0, 10, 10], fov: 45 }}
-          className={`${isDarkMode ? "bg-gradient-to-b from-gray-900 to-purple-950" : "bg-gradient-to-b from-blue-100 to-purple-100"}`}
+          className={`${isDarkMode ? "bg-gray-900" : "bg-gray-100"}`}
           dpr={[1, 2]} // Limit pixel ratio for better performance
         >
           {/* Adjusted lighting for better visuals and dark mode support */}
-          <ambientLight intensity={isDarkMode ? 0.4 : 0.7} />
+          <ambientLight intensity={isDarkMode ? 0.5 : 0.7} />
           <directionalLight
             position={[10, 10, 10]}
-            intensity={isDarkMode ? 0.8 : 1}
+            intensity={isDarkMode ? 1 : 1}
             castShadow
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
@@ -73,10 +73,13 @@ function Game() {
           {/* Add point light for more dramatic lighting */}
           <pointLight
             position={[0, 8, 0]}
-            intensity={isDarkMode ? 0.8 : 0.5}
+            intensity={isDarkMode ? 1 : 0.5}
             distance={20}
             color={isDarkMode ? "#a78bfa" : "#f0f9ff"}
           />
+
+          {/* Add fill light for better visibility in dark mode */}
+          {isDarkMode && <pointLight position={[0, 5, -8]} intensity={0.3} distance={15} color="#94A3B8" />}
 
           {/* Add stars background in dark mode */}
           {isDarkMode && <Stars radius={100} depth={50} count={1000} factor={4} fade speed={1} />}
@@ -105,8 +108,8 @@ function Game() {
         {/* UI elements */}
         <GameUI />
 
-        {/* Mobile controls - only shown on mobile devices */}
-        {gameStarted && <MobileControls />}
+        {/* Mobile controls - only shown on mobile devices when game has started */}
+        {gameStarted && isMobile && <MobileControls />}
 
         {/* Welcome screen */}
         {!gameStarted && <WelcomeScreen />}

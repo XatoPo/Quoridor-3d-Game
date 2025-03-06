@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useGameContext } from "../context/game-context"
 import { Button } from "./ui/button"
-import { Card } from "./ui/card"
+import { Card, CardTitle, CardDescription } from "./ui/card"
 import {
   RotateCcw,
   HelpCircle,
@@ -63,6 +63,8 @@ export default function GameUI() {
   const [showWinner, setShowWinner] = useState(false)
   const [showMobileHelp, setShowMobileHelp] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showSoundNotification, setShowSoundNotification] = useState(false)
 
   // Detect mobile devices
   useEffect(() => {
@@ -98,6 +100,19 @@ export default function GameUI() {
     }
   }, [isMobile, gameStarted])
 
+  // Add timer to auto-hide sound notification after 10 seconds
+  useEffect(() => {
+    if (isMuted && gameStarted) {
+      setShowSoundNotification(true)
+      const timer = setTimeout(() => {
+        setShowSoundNotification(false)
+      }, 10000)
+      return () => clearTimeout(timer)
+    } else {
+      setShowSoundNotification(false)
+    }
+  }, [isMuted, gameStarted])
+
   const currentPlayer = gameState.currentPlayer === 0 ? "Rojo" : "Azul"
   const wallsLeft = gameState.currentPlayer === 0 ? gameState.players[0].wallsLeft : gameState.players[1].wallsLeft
   const playerColors = gameState.currentPlayer === 0 ? COLORS.players.p1 : COLORS.players.p2
@@ -122,9 +137,25 @@ export default function GameUI() {
     toggleWallMode()
   }
 
+  const handleShowResetConfirm = () => {
+    triggerSound()
+    setShowResetConfirm(true)
+  }
+
+  const handleConfirmReset = () => {
+    triggerSound()
+    resetGame()
+    setShowResetConfirm(false)
+  }
+
+  const handleCancelReset = () => {
+    triggerSound()
+    setShowResetConfirm(false)
+  }
+
   const handleResetGame = () => {
     triggerSound() // Add click sound
-    resetGame()
+    handleShowResetConfirm()
   }
 
   const handleToggleMuted = () => {
@@ -145,6 +176,10 @@ export default function GameUI() {
   const handleCloseMobileHelp = () => {
     triggerSound() // Add click sound
     setShowMobileHelp(false)
+  }
+
+  const handleDismissSoundNotification = () => {
+    setShowSoundNotification(false)
   }
 
   return (
@@ -195,7 +230,7 @@ export default function GameUI() {
                     size="sm"
                     variant="outline"
                     className={`flex-1 ${COLORS.actions.outline}`}
-                    onClick={handleResetGame}
+                    onClick={handleShowResetConfirm}
                   >
                     <RotateCcw className="mr-1 h-4 w-4" /> Reiniciar
                   </Button>
@@ -393,10 +428,37 @@ export default function GameUI() {
           </Card>
         </div>
       )}
-      {isMuted && gameStarted && (
-        <div className="fixed left-1/2 transform -translate-x-1/2 bg-yellow-500/80 dark:bg-yellow-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg z-10 flex items-center gap-2 bottom-4">
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-30 backdrop-blur-sm">
+          <Card className={`max-w-sm w-full ${COLORS.ui.background} p-5 animate-in fade-in zoom-in duration-300`}>
+            <CardTitle className="text-xl mb-4">¿Reiniciar juego?</CardTitle>
+            <CardDescription className="mb-6">
+              ¿Estás seguro de que quieres reiniciar la partida? Perderás todo el progreso actual.
+            </CardDescription>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={handleCancelReset}>
+                Cancelar
+              </Button>
+              <Button className={COLORS.actions.primary} onClick={handleConfirmReset}>
+                Reiniciar
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+      {showSoundNotification && (
+        <div className="fixed left-1/2 transform -translate-x-1/2 bg-yellow-500/80 dark:bg-yellow-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg z-[100] flex items-center gap-2 bottom-20 animate-in fade-in slide-in-from-bottom duration-300">
           <Volume2 className="h-5 w-5" />
           <span>Activa el sonido para una mejor experiencia</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDismissSoundNotification}
+            className="ml-2 hover:bg-yellow-600/80 dark:hover:bg-yellow-700/80 rounded-full h-6 w-6 p-0"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Cerrar</span>
+          </Button>
         </div>
       )}
     </>

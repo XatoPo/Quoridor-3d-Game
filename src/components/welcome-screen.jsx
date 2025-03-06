@@ -13,7 +13,6 @@ export default function WelcomeScreen() {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
-    // Apply dark mode class to body when needed
     if (isDarkMode) {
       document.body.classList.add("dark")
     } else {
@@ -22,36 +21,35 @@ export default function WelcomeScreen() {
   }, [isDarkMode])
 
   const handleStart = () => {
-    triggerSound() // Add click sound
+    triggerSound()
     setIsVisible(false)
-    // Small delay to allow exit animation
     setTimeout(() => {
       startGame()
     }, 500)
   }
 
   const handleToggleCredits = () => {
-    triggerSound() // Add click sound
+    triggerSound()
     setShowCredits(!showCredits)
   }
 
   const handleShowAIModal = () => {
-    triggerSound() // Add click sound
+    triggerSound()
     setShowAIModal(true)
   }
 
   const handleCloseAIModal = () => {
-    triggerSound() // Add click sound
+    triggerSound()
     setShowAIModal(false)
   }
 
   const handleToggleMuted = () => {
-    triggerSound() // Add click sound
+    triggerSound()
     toggleMuted()
   }
 
   const handleToggleDarkMode = () => {
-    triggerSound() // Add click sound
+    triggerSound()
     toggleDarkMode()
   }
 
@@ -65,11 +63,16 @@ export default function WelcomeScreen() {
           variant="outline"
           size="icon"
           onClick={handleToggleDarkMode}
-          className="bg-white/80 dark:bg-gray-800/80"
+          className="bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-white"
         >
           {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
-        <Button variant="outline" size="icon" onClick={handleToggleMuted} className="bg-white/80 dark:bg-gray-800/80">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleToggleMuted}
+          className="bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-white"
+        >
           {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
         </Button>
       </div>
@@ -78,18 +81,13 @@ export default function WelcomeScreen() {
         <CardHeader className="text-center pb-2">
           <div className="w-32 h-32 mx-auto mb-2">
             <div className="relative w-full h-full">
-              <div className="absolute w-12 h-12 bg-red-500 rounded-full top-4 left-4 animate-pulse" />
-              <div
-                className="absolute w-12 h-12 bg-blue-500 rounded-full bottom-4 right-4 animate-pulse"
-                style={{ animationDelay: "0.5s" }}
-              />
+              <div className="absolute w-12 h-12 bg-red-500 rounded-full top-4 left-4 shadow-md" />
+              <div className="absolute w-12 h-12 bg-blue-500 rounded-full bottom-4 right-4 shadow-md" />
               <div className="absolute w-full h-2 bg-purple-700 rotate-45 top-1/2 left-0 transform -translate-y-1/2" />
               <div className="absolute w-full h-2 bg-purple-700 -rotate-45 top-1/2 left-0 transform -translate-y-1/2" />
             </div>
           </div>
-          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Quoridor 3D
-          </CardTitle>
+          <CardTitle className="text-4xl font-bold text-purple-700 dark:text-purple-400">Quoridor 3D</CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-300">
             El clásico juego de estrategia en un entorno 3D
           </CardDescription>
@@ -104,7 +102,7 @@ export default function WelcomeScreen() {
           ) : (
             <div className="text-left space-y-3 py-2">
               <h3 className="font-semibold text-purple-600 dark:text-purple-400">Créditos</h3>
-              <p className="text-sm">
+              <p className="text-sm text-gray-700 dark:text-gray-200">
                 Diseñado y desarrollado por: <span className="font-semibold">Flavio Villanueva Medina</span>
               </p>
               <div className="flex items-center gap-2 text-sm">
@@ -137,21 +135,19 @@ export default function WelcomeScreen() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2">
-          <Button
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold"
-            onClick={handleStart}
-          >
+          <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold" onClick={handleStart}>
             Jugar ahora
           </Button>
           <Button
-            className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold"
+            variant="default"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
             onClick={handleShowAIModal}
           >
             VS IA
           </Button>
           <Button
             variant="outline"
-            className="w-full border-purple-200 dark:border-gray-700"
+            className="w-full border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={handleToggleCredits}
           >
             {showCredits ? "Volver" : "Créditos"}
@@ -160,14 +156,14 @@ export default function WelcomeScreen() {
       </Card>
 
       {isMuted && (
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 dark:bg-yellow-600 text-white px-4 py-2 rounded-full shadow-lg animate-pulse z-50 flex items-center gap-2">
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 dark:bg-yellow-600 text-white px-4 py-2 rounded-full shadow-lg animate-pulse z-[100] flex items-center gap-2">
           <Volume2 className="h-5 w-5" />
           <span>Activa el sonido para una mejor experiencia</span>
         </div>
       )}
 
       {showAIModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200] backdrop-blur-sm animate-in fade-in duration-300">
           <Card className="max-w-md w-full bg-white/90 dark:bg-gray-800/90 p-6 animate-in zoom-in duration-300">
             <div className="text-center">
               <div className="w-24 h-24 mx-auto mb-4 relative">
@@ -182,12 +178,12 @@ export default function WelcomeScreen() {
                   Estamos trabajando en una inteligencia artificial que te desafiará en Quoridor.
                 </p>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 h-4 rounded-full overflow-hidden">
-                  <div className="bg-gradient-to-r from-green-500 to-teal-500 h-full w-3/4 animate-pulse-slow"></div>
+                  <div className="bg-emerald-500 h-full w-3/4"></div>
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Progreso: 75% completado</p>
               </div>
 
-              <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white" onClick={handleCloseAIModal}>
+              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white" onClick={handleCloseAIModal}>
                 Volver al menú
               </Button>
             </div>

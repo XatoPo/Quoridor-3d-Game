@@ -76,11 +76,6 @@ export default function BoardTile({
         }
       />
 
-      <lineSegments>
-        <edgesGeometry args={[new THREE.BoxGeometry(0.9, 0.1, 0.9)]} />
-        <lineBasicMaterial color={isDarkMode ? "#F1F5F9" : "#27272A"} />
-      </lineSegments>
-
       {/* Add subtle highlight effect for valid moves */}
       {isValidMove && (
         <mesh position={[0, 0.06, 0]}>

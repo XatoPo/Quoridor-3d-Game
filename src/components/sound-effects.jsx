@@ -5,7 +5,7 @@ import { useGameContext } from "../context/game-context"
 
 // Sound file URLs relative to the public folder
 const SOUNDS = {
-  move: "/sounds/move.mp3",
+  movement: "/sounds/move.mp3",
   wall: "/sounds/wall.mp3",
   win: "/sounds/win.mp3",
   click: "/sounds/click.mp3",
@@ -26,7 +26,7 @@ export default function SoundEffects() {
   // Initialize audio elements
   useEffect(() => {
     // Create new Audio objects
-    moveSound.current = new Audio(SOUNDS.move)
+    moveSound.current = new Audio(SOUNDS.movement)
     wallSound.current = new Audio(SOUNDS.wall)
     winSound.current = new Audio(SOUNDS.win)
     clickSound.current = new Audio(SOUNDS.click)
@@ -100,7 +100,7 @@ export default function SoundEffects() {
       }
     }
 
-    if (lastAction === "move") {
+    if (lastAction === "movement") {
       playSound(moveSound)
     } else if (lastAction === "wall") {
       playSound(wallSound)

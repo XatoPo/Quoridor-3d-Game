@@ -29,7 +29,7 @@ export default function PlayerPiece({ position, color, isCurrentPlayer }) {
 
       // More dynamic hover animation for current player's piece
       if (isCurrentPlayer) {
-        ref.current.position.y = position.y + Math.sin(state.clock.elapsedTime * 2) * 0.15 + 0.15
+        ref.current.position.y = position.y + Math.sin(state.clock.elapsedTime * 2) * 0.15 + 0.1
         ref.current.rotation.y += delta * (isMoving ? 4 : 2)
       } else {
         // Subtle animation for non-current player

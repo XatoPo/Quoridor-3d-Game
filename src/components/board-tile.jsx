@@ -1,12 +1,27 @@
-"use client"
+"use client";
 
-import { useRef } from "react"
-import { useFrame } from "@react-three/fiber"
-import { useGameContext } from "../context/game-context"
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useGameContext } from "../context/game-context";
+import * as THREE from "three";
 
-export default function BoardTile({ position, tileX, tileZ, color, isSelected, isValidMove }) {
-  const ref = useRef()
-  const { setSelectedTile, makeMove, isDarkMode } = useGameContext()
+export default function BoardTile({
+  position,
+  tileX,
+  tileZ,
+  color,
+  isSelected,
+  isValidMove,
+}) {
+  const ref = useRef();
+  const {
+    setSelectedTile,
+    makeMove,
+    isDarkMode,
+    triggerSound,
+    lastAction,
+    setLastAction,
+  } = useGameContext();
 
   // Enhanced tile animations
   useFrame((state) => {
@@ -30,18 +45,21 @@ export default function BoardTile({ position, tileX, tileZ, color, isSelected, i
 
   // Determine tile color based on state with more vibrant highlights
   const getTileColor = () => {
-    if (isSelected) return isDarkMode ? "#991B1B" : "#FCA5A5" // Red for selected
-    if (isValidMove) return isDarkMode ? "#065F46" : "#86EFAC" // Green for valid moves
-    return color // Use provided color (including goal row colors)
-  }
+    if (isSelected) return isDarkMode ? "#991B1B" : "#FCA5A5"; // Red for selected
+    if (isValidMove) return isDarkMode ? "#065F46" : "#86EFAC"; // Green for valid moves
+    return color; // Use provided color (including goal row colors)
+  };
 
+  // Update the handleClick to trigger movement sound for board tiles
   const handleClick = () => {
     if (isValidMove) {
-      makeMove(tileX, tileZ)
+      makeMove(tileX, tileZ);
+      triggerSound(); // Trigger movement sound
     } else {
-      setSelectedTile({ x: tileX, z: tileZ })
+      setSelectedTile({ x: tileX, z: tileZ });
+      triggerSound(); // Trigger regular click sound
     }
-  }
+  };
 
   return (
     <mesh position={position} receiveShadow ref={ref} onClick={handleClick}>

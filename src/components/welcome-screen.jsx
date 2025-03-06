@@ -7,7 +7,7 @@ import { Github, Linkedin, Volume2, VolumeX, Moon, Sun, Construction } from "luc
 import { useGameContext } from "../context/game-context"
 
 export default function WelcomeScreen() {
-  const { startGame, isMuted, toggleMuted, isDarkMode, toggleDarkMode } = useGameContext()
+  const { startGame, isMuted, toggleMuted, isDarkMode, toggleDarkMode, triggerSound } = useGameContext()
   const [showCredits, setShowCredits] = useState(false)
   const [showAIModal, setShowAIModal] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
@@ -22,11 +22,37 @@ export default function WelcomeScreen() {
   }, [isDarkMode])
 
   const handleStart = () => {
+    triggerSound() // Add click sound
     setIsVisible(false)
     // Small delay to allow exit animation
     setTimeout(() => {
       startGame()
     }, 500)
+  }
+
+  const handleToggleCredits = () => {
+    triggerSound() // Add click sound
+    setShowCredits(!showCredits)
+  }
+
+  const handleShowAIModal = () => {
+    triggerSound() // Add click sound
+    setShowAIModal(true)
+  }
+
+  const handleCloseAIModal = () => {
+    triggerSound() // Add click sound
+    setShowAIModal(false)
+  }
+
+  const handleToggleMuted = () => {
+    triggerSound() // Add click sound
+    toggleMuted()
+  }
+
+  const handleToggleDarkMode = () => {
+    triggerSound() // Add click sound
+    toggleDarkMode()
   }
 
   return (
@@ -35,10 +61,15 @@ export default function WelcomeScreen() {
       transition-opacity duration-500 ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
     >
       <div className="absolute top-4 right-4 flex gap-2">
-        <Button variant="outline" size="icon" onClick={toggleDarkMode} className="bg-white/80 dark:bg-gray-800/80">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleToggleDarkMode}
+          className="bg-white/80 dark:bg-gray-800/80"
+        >
           {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
-        <Button variant="outline" size="icon" onClick={toggleMuted} className="bg-white/80 dark:bg-gray-800/80">
+        <Button variant="outline" size="icon" onClick={handleToggleMuted} className="bg-white/80 dark:bg-gray-800/80">
           {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
         </Button>
       </div>
@@ -114,14 +145,14 @@ export default function WelcomeScreen() {
           </Button>
           <Button
             className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold"
-            onClick={() => setShowAIModal(true)}
+            onClick={handleShowAIModal}
           >
             VS IA
           </Button>
           <Button
             variant="outline"
             className="w-full border-purple-200 dark:border-gray-700"
-            onClick={() => setShowCredits(!showCredits)}
+            onClick={handleToggleCredits}
           >
             {showCredits ? "Volver" : "Créditos"}
           </Button>
@@ -135,7 +166,6 @@ export default function WelcomeScreen() {
         </div>
       )}
 
-      {/* AI Coming Soon Modal */}
       {showAIModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 backdrop-blur-sm animate-in fade-in duration-300">
           <Card className="max-w-md w-full bg-white/90 dark:bg-gray-800/90 p-6 animate-in zoom-in duration-300">
@@ -157,10 +187,7 @@ export default function WelcomeScreen() {
                 <p className="text-sm text-gray-500 dark:text-gray-400">Progreso: 75% completado</p>
               </div>
 
-              <Button
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
-                onClick={() => setShowAIModal(false)}
-              >
+              <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white" onClick={handleCloseAIModal}>
                 Volver al menú
               </Button>
             </div>

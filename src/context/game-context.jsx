@@ -34,6 +34,7 @@ export function GameProvider({ children }) {
   const startGame = () => {
     setGameStarted(true)
     setLastAction("click")
+    triggerClickSound()
   }
 
   // Return to menu
@@ -48,8 +49,8 @@ export function GameProvider({ children }) {
     const newState = QuoridorLogic.makeMove(x, z, state)
     setState(newState)
     setSelectedTile(null)
-    setLastAction("move")
-    setSoundTrigger((prev) => prev + 1) // Añadir esta línea
+    setLastAction("movement") // Changed from "move" to "movement" to avoid confusion
+    setSoundTrigger((prev) => prev + 1)
   }
 
   // Place a wall
@@ -58,7 +59,7 @@ export function GameProvider({ children }) {
     setState(newState)
     setHoveredWallPosition(null)
     setLastAction("wall")
-    setSoundTrigger((prev) => prev + 1) // Añadir esta línea
+    setSoundTrigger((prev) => prev + 1)
   }
 
   // Toggle wall mode
@@ -72,6 +73,7 @@ export function GameProvider({ children }) {
     setSelectedTile(null)
     setHoveredWallPosition(null)
     setLastAction("click")
+    triggerClickSound()
   }
 
   // Reset game
@@ -80,22 +82,31 @@ export function GameProvider({ children }) {
     setSelectedTile(null)
     setHoveredWallPosition(null)
     setLastAction("click")
+    triggerClickSound()
   }
 
   // Toggle muted state
   const toggleMuted = () => {
     setIsMuted(!isMuted)
     setLastAction("click")
+    triggerClickSound()
   }
 
   // Toggle dark mode
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode)
     setLastAction("click")
+    triggerClickSound()
   }
 
   // Trigger sound effect
   const triggerSound = () => {
+    setSoundTrigger((prev) => prev + 1)
+  }
+
+  // Update any UI button click to trigger click sound
+  const triggerClickSound = () => {
+    setLastAction("click")
     setSoundTrigger((prev) => prev + 1)
   }
 

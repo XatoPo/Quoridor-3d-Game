@@ -63,6 +63,9 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Improved dark mode for the entire app */
+    color-scheme: dark;
   }
 }
 
@@ -75,11 +78,36 @@
   }
 }
 
+/* Improved dark mode specific styles */
+.dark body {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 /* Custom styles for the game */
 html,
 body {
   overflow: hidden;
   touch-action: none;
+}
+
+/* Enhanced animations */
+@keyframes rotate-slow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-rotate-slow {
+  animation: rotate-slow 10s linear infinite;
 }
 
 /* Custom animation */

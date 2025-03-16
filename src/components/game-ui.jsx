@@ -19,6 +19,7 @@ import {
   Brain,
   Loader2,
   AlertTriangle,
+  SkipForward,
 } from "lucide-react"
 
 // Color palette matching the game board
@@ -45,6 +46,7 @@ const COLORS = {
     primary: "bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-600",
     secondary: "bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200",
     outline: "border border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700",
+    danger: "bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-600",
   },
 }
 
@@ -64,6 +66,8 @@ export default function GameUI() {
     aiDifficulty,
     isAIThinking,
     aiError,
+    forceNextTurn,
+    aiStuck,
   } = useGameContext()
   const [showRules, setShowRules] = useState(false)
   const [showInfo, setShowInfo] = useState(true)
@@ -205,7 +209,6 @@ export default function GameUI() {
     setShowAIError(false)
   }
 
-  // Obtener el texto de dificultad de la IA
   const getAIDifficultyText = () => {
     switch (aiDifficulty) {
       case "easy":
@@ -231,6 +234,12 @@ export default function GameUI() {
       default:
         return "text-yellow-500 dark:text-yellow-400"
     }
+  }
+
+  // Modificar la parte del botón de forzar turno
+  const handleForceNextTurn = () => {
+    triggerSound()
+    forceNextTurn()
   }
 
   return (
@@ -293,6 +302,16 @@ export default function GameUI() {
                 >
                   {gameState.wallMode ? "Mover" : "Muro"}
                 </Button>
+                {isAIMode && aiStuck && gameState.currentPlayer === 1 && (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className={`mt-2 flex-1 ${COLORS.actions.danger} animate-pulse`}
+                    onClick={handleForceNextTurn}
+                  >
+                    <SkipForward className="mr-1 h-4 w-4" /> Forzar siguiente turno
+                  </Button>
+                )}
                 <div className="flex gap-2">
                   <Button
                     size="sm"
@@ -345,7 +364,7 @@ export default function GameUI() {
       {showRules && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-20 backdrop-blur-sm">
           <Card
-            className={`max-w-lg w-full ${COLORS.ui.background} p-6 relative max-h-[80vh] overflow-y-auto animate-in fade-in zoom-in duration-300`}
+            className={`max-w-lg w-full mx-4 ${COLORS.ui.background} p-6 relative max-h-[80vh] overflow-y-auto animate-in fade-in zoom-in duration-300`}
           >
             <Button
               variant="ghost"
@@ -563,18 +582,44 @@ export default function GameUI() {
 
       {/* AI error notification */}
       {showAIError && aiError && (
-        <div className="fixed left-1/2 transform -translate-x-1/2 bg-red-500/80 dark:bg-red-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg z-[100] flex items-center gap-2 top-20 animate-in fade-in slide-in-from-top duration-300">
-          <AlertTriangle className="h-5 w-5" />
-          <span>{aiError}</span>
+        <div className="fixed left-1/2 transform -translate-x-1/2 bg-amber-500/80 dark:bg-amber-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg z-[100] flex items-center gap-2 top-20 animate-in fade-in slide-in-from-top duration-300 mx-4 max-w-[95vw]">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+          <span className="text-sm">{aiError}</span>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleDismissAIError}
-            className="ml-2 hover:bg-red-600/80 dark:hover:bg-red-700/80 rounded-full h-6 w-6 p-0"
+            className="ml-2 hover:bg-amber-600/80 dark:hover:bg-amber-700/80 rounded-full h-6 w-6 p-0 flex-shrink-0"
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Cerrar</span>
           </Button>
+        </div>
+      )}
+
+      {isAIMode && aiStuck && gameState.currentPlayer === 1 && (
+        <div className="fixed left-1/2 transform -translate-x-1/2 bg-red-500/80 dark:bg-red-600/80 backdrop-blur-sm text-white px-4 py-3 rounded-lg shadow-lg z-[100] flex flex-col items-center gap-2 top-1/2 -translate-y-1/2 max-w-xs w-full animate-in fade-in zoom-in duration-300">
+          <AlertTriangle className="h-6 w-6" />
+          <span className="text-center font-medium">La IA se ha quedado bloqueada</span>
+          <p className="text-sm text-center">Puedes forzar el siguiente turno para continuar jugando</p>
+          <Button
+            variant="default"
+            className="mt-2 w-full bg-white text-red-600 hover:bg-gray-100 hover:text-red-700 font-bold"
+            onClick={handleForceNextTurn}
+          >
+            <SkipForward className="mr-2 h-5 w-5" /> Forzar siguiente turno
+          </Button>
+        </div>
+      )}
+
+      {isAIMode && (
+        <div className="absolute bottom-4 right-4 z-10">
+          <Card className={`p-2 ${COLORS.ui.background} shadow-md text-xs`}>
+            <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="h-3 w-3" />
+              <span>Versión Alpha de IA</span>
+            </div>
+          </Card>
         </div>
       )}
     </>

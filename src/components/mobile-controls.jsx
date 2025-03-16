@@ -125,7 +125,7 @@ export default function MobileControls() {
         </Button>
 
         {showControls && (
-          <div className="bg-white/90 dark:bg-gray-800/90 p-4 rounded-lg shadow-lg backdrop-blur-sm border border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-bottom duration-300 relative">
+          <div className="bg-white/90 dark:bg-gray-800/90 p-4 rounded-lg shadow-lg backdrop-blur-sm border border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-bottom duration-300 relative mx-2 max-w-[95vw]">
             {/* Mode indicator with player color accent */}
             <div className="text-center mb-4 flex items-center justify-between">
               <div className={`h-3 w-3 rounded-full bg-gradient-to-br ${playerColorClass}`}></div>

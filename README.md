@@ -66,10 +66,15 @@ Los jugadores deben mover sus piezas a través del tablero mientras colocan muro
 ## 🎮 Características Principales
 
 ✅ **Modo de Juego Estratégico**: Mueve tu pieza y coloca muros estratégicamente.
+
 ✅ **Gráficos en 3D**: Implementados con Three.js para una experiencia inmersiva.
+
 ✅ **Modo Oscuro**: Adaptación automática a la configuración del usuario.
+
 ✅ **Detección de Dispositivos Móviles**: Interfaz y controles optimizados para móviles.
+
 ✅ **Efectos de Sonido y Animaciones**: Uso de GSAP y React Three Fiber para transiciones suaves.
+
 ✅ **Gestión de Estado Global**: Implementado con Context API.
 
 ---
@@ -128,9 +133,13 @@ Quoridor-3d-Game/
 ## 📌 Mejoras Implementadas
 
 🔹 **Optimización de Lógica de Muros**: Evita colocar muros fuera de los límites y bloqueos ilegales.
+
 🔹 **Detección Automática de Movimientos Válidos**: Resalta posibles movimientos para los jugadores.
+
 🔹 **Sistema de Control Móvil Mejorado**: Controles adaptativos para pantallas táctiles.
+
 🔹 **Gestión de Sonidos**: Efectos de audio mejorados para una mejor experiencia.
+
 🔹 **Modo Oscuro Dinámico**: Sincronización con las preferencias del usuario.
 
 ---
@@ -151,4 +160,5 @@ Quoridor-3d-Game/
 Este proyecto está bajo la licencia MIT. Siéntete libre de contribuir y mejorar el código.
 
 📩 **Contacto:** Si tienes alguna pregunta o sugerencia, no dudes en abrir un issue o contactarme. 😊
+
 📩 _Desarrollado con pasión por Flavio Villanueva Medina_

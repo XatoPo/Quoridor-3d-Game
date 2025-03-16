@@ -25,8 +25,6 @@ Los jugadores deben mover sus piezas a través del tablero mientras colocan muro
 
 ---
 
----
-
 ## 📖 Manual de Uso 🕹️
 
 1. **Inicio del Juego**

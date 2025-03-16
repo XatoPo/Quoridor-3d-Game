@@ -1,13 +1,13 @@
 "use client"
 
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState, useCallback } from "react"
 import { useThree } from "@react-three/fiber"
 import { useGameContext } from "../context/game-context"
 import * as THREE from "three"
 import { snapToWallPosition } from "../logic/quoridor-logic"
 
 export default function WallGrid() {
-  const { gameState, setHoveredWallPosition, isDarkMode } = useGameContext()
+  const { gameState, setHoveredWallPosition, isDarkMode, isAIMode, isAIThinking } = useGameContext()
   const gridRef = useRef()
   const { camera, size } = useThree()
   const raycaster = new THREE.Raycaster()
@@ -30,50 +30,58 @@ export default function WallGrid() {
   }, [])
 
   // Handle wall placement
-  const handleWallPlacement = (event, isClick = false) => {
-    if (!gameState.wallMode || isMobile) return // Skip on mobile - use mobile controls instead
-    event.stopPropagation()
-
-    const x = (event.offsetX / size.width) * 2 - 1
-    const y = -(event.offsetY / size.height) * 2 + 1
-
-    console.group("Wall Placement Debug")
-    console.log("Mouse coordinates:", { x, y })
-    console.log("Screen size:", size)
-
-    raycaster.setFromCamera({ x, y }, camera)
-
-    if (raycaster.ray.intersectPlane(plane, intersection)) {
-      if (gridRef.current) {
-        intersection.applyMatrix4(gridRef.current.matrixWorld.invert())
+  const handleWallPlacement = useCallback(
+    (event, isClick = false) => {
+      // Deshabilitar durante el turno de la IA o cuando está pensando
+      if (isAIMode && (gameState.currentPlayer === 1 || isAIThinking)) {
+        return
       }
 
-      console.log("Intersection point:", {
-        x: intersection.x,
-        z: intersection.z,
-      })
+      if (!gameState.wallMode || isMobile) return // Skip on mobile - use mobile controls instead
+      event.stopPropagation()
 
-      const wallPos = snapToWallPosition(intersection)
-      console.log("Snapped wall position:", wallPos)
+      const x = (event.offsetX / size.width) * 2 - 1
+      const y = -(event.offsetY / size.height) * 2 + 1
 
-      // Debug visualization of affected grid cells
-      const affectedCells = getAffectedCells(wallPos)
-      console.log("Affected cells:", affectedCells)
+      console.group("Wall Placement Debug")
+      console.log("Mouse coordinates:", { x, y })
+      console.log("Screen size:", size)
 
-      if (isClick) {
-        if (gameState.isValidWallPlacement(wallPos)) {
-          console.log("Placing wall at:", wallPos)
-          gameState.placeWall(wallPos.x, wallPos.z, wallPos.orientation)
-        } else {
-          console.log("Invalid wall placement")
+      raycaster.setFromCamera({ x, y }, camera)
+
+      if (raycaster.ray.intersectPlane(plane, intersection)) {
+        if (gridRef.current) {
+          intersection.applyMatrix4(gridRef.current.matrixWorld.invert())
         }
-      } else {
-        setHoveredWallPosition(wallPos)
-      }
-    }
 
-    console.groupEnd()
-  }
+        console.log("Intersection point:", {
+          x: intersection.x,
+          z: intersection.z,
+        })
+
+        const wallPos = snapToWallPosition(intersection)
+        console.log("Snapped wall position:", wallPos)
+
+        // Debug visualization of affected grid cells
+        const affectedCells = getAffectedCells(wallPos)
+        console.log("Affected cells:", affectedCells)
+
+        if (isClick) {
+          if (gameState.isValidWallPlacement(wallPos)) {
+            console.log("Placing wall at:", wallPos)
+            gameState.placeWall(wallPos.x, wallPos.z, wallPos.orientation)
+          } else {
+            console.log("Invalid wall placement")
+          }
+        } else {
+          setHoveredWallPosition(wallPos)
+        }
+      }
+
+      console.groupEnd()
+    },
+    [camera, gameState, isAIMode, isAIThinking, isMobile, setHoveredWallPosition, size],
+  )
 
   // Helper function to get affected grid cells for visualization
   const getAffectedCells = (wallPos) => {

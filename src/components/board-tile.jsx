@@ -1,13 +1,13 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useCallback } from "react"
 import { useFrame } from "@react-three/fiber"
 import { useGameContext } from "../context/game-context"
 import * as THREE from "three"
 
 export default function BoardTile({ position, tileX, tileZ, color, isSelected, isValidMove }) {
   const ref = useRef()
-  const { setSelectedTile, makeMove, isDarkMode, triggerSound } = useGameContext()
+  const { setSelectedTile, makeMove, isDarkMode, triggerSound, isAIMode, isAIThinking, gameState } = useGameContext()
 
   // Enhanced tile animations
   useFrame((state) => {
@@ -37,7 +37,12 @@ export default function BoardTile({ position, tileX, tileZ, color, isSelected, i
   }
 
   // Update the handleClick to trigger movement sound for board tiles
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
+    // Deshabilitar clicks durante el turno de la IA o cuando está pensando
+    if (isAIMode && (gameState.currentPlayer === 1 || isAIThinking)) {
+      return
+    }
+
     if (isValidMove) {
       makeMove(tileX, tileZ)
       triggerSound() // Trigger movement sound
@@ -45,7 +50,7 @@ export default function BoardTile({ position, tileX, tileZ, color, isSelected, i
       setSelectedTile({ x: tileX, z: tileZ })
       triggerSound() // Trigger regular click sound
     }
-  }
+  }, [isValidMove, makeMove, setSelectedTile, triggerSound, tileX, tileZ, isAIMode, isAIThinking, gameState])
 
   return (
     <group position={position}>

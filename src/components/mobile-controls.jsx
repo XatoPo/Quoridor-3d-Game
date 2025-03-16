@@ -15,6 +15,8 @@ export default function MobileControls() {
     toggleWallMode,
     triggerSound,
     isDarkMode,
+    isAIMode,
+    isAIThinking,
   } = useGameContext()
 
   const [showControls, setShowControls] = useState(true)
@@ -38,7 +40,13 @@ export default function MobileControls() {
   const successColorClass = "from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-800"
   const errorColorClass = "from-rose-500 to-rose-600 dark:from-rose-600 dark:to-rose-800"
 
+  // Actualizar los manejadores para deshabilitar durante el turno de la IA
   const handleMove = (dx, dz) => {
+    // Verificar si es el turno de la IA
+    if (isAIMode && (gameState.currentPlayer === 1 || isAIThinking)) {
+      return
+    }
+
     triggerSound()
     const newX = currentPlayer.x + dx
     const newZ = currentPlayer.z + dz
@@ -49,6 +57,11 @@ export default function MobileControls() {
   }
 
   const handleAdjustWall = (dx, dz) => {
+    // Verificar si es el turno de la IA
+    if (isAIMode && (gameState.currentPlayer === 1 || isAIThinking)) {
+      return
+    }
+
     triggerSound()
     const newX = Math.max(0, Math.min(7, wallPosition.x + dx))
     const newZ = Math.max(0, Math.min(7, wallPosition.z + dz))
@@ -62,6 +75,11 @@ export default function MobileControls() {
   }
 
   const handleToggleOrientation = () => {
+    // Verificar si es el turno de la IA
+    if (isAIMode && (gameState.currentPlayer === 1 || isAIThinking)) {
+      return
+    }
+
     triggerSound()
     const newOrientation = wallOrientation === "horizontal" ? "vertical" : "horizontal"
     setWallOrientation(newOrientation)
@@ -72,6 +90,11 @@ export default function MobileControls() {
   }
 
   const handleConfirmWall = () => {
+    // Verificar si es el turno de la IA
+    if (isAIMode && (gameState.currentPlayer === 1 || isAIThinking)) {
+      return
+    }
+
     triggerSound()
     if (hoveredWallPosition && gameState.isValidWallPlacement(hoveredWallPosition)) {
       placeWall(hoveredWallPosition.x, hoveredWallPosition.z, hoveredWallPosition.orientation)

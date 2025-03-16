@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "./ui/card"
-import { Github, Linkedin, Volume2, VolumeX, Moon, Sun, Construction } from "lucide-react"
+import { Github, Linkedin, Volume2, VolumeX, Moon, Sun, Brain } from "lucide-react"
 import { useGameContext } from "../context/game-context"
 
 export default function WelcomeScreen() {
   const { startGame, isMuted, toggleMuted, isDarkMode, toggleDarkMode, triggerSound } = useGameContext()
   const [showCredits, setShowCredits] = useState(false)
   const [showAIModal, setShowAIModal] = useState(false)
+  const [selectedDifficulty, setSelectedDifficulty] = useState("medium")
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function WelcomeScreen() {
     triggerSound()
     setIsVisible(false)
     setTimeout(() => {
-      startGame()
+      startGame(false)
     }, 500)
   }
 
@@ -51,6 +52,20 @@ export default function WelcomeScreen() {
   const handleToggleDarkMode = () => {
     triggerSound()
     toggleDarkMode()
+  }
+
+  const handleStartAIGame = () => {
+    triggerSound()
+    setIsVisible(false)
+    setTimeout(() => {
+      startGame(true, selectedDifficulty)
+    }, 500)
+    setShowAIModal(false)
+  }
+
+  const handleSelectDifficulty = (difficulty) => {
+    triggerSound()
+    setSelectedDifficulty(difficulty)
   }
 
   return (
@@ -136,7 +151,7 @@ export default function WelcomeScreen() {
 
         <CardFooter className="flex flex-col gap-2">
           <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold" onClick={handleStart}>
-            Jugar ahora
+            Jugar 2 Jugadores
           </Button>
           <Button
             variant="default"
@@ -167,25 +182,77 @@ export default function WelcomeScreen() {
           <Card className="max-w-md w-full bg-white/90 dark:bg-gray-800/90 p-6 animate-in zoom-in duration-300">
             <div className="text-center">
               <div className="w-24 h-24 mx-auto mb-4 relative">
-                <Construction className="w-16 h-16 text-yellow-500 absolute inset-0 m-auto animate-bounce" />
-                <div className="w-full h-full rounded-full border-4 border-dashed border-yellow-500 animate-spin-slow absolute inset-0"></div>
+                <Brain className="w-16 h-16 text-purple-500 absolute inset-0 m-auto" />
+                <div className="w-full h-full rounded-full border-4 border-dashed border-purple-500 animate-spin-slow absolute inset-0"></div>
               </div>
 
-              <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Modo IA en Desarrollo</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Jugar contra la IA</h2>
 
               <div className="space-y-4 mb-6">
-                <p className="text-gray-600 dark:text-gray-300">
-                  Estamos trabajando en una inteligencia artificial que te desafiará en Quoridor.
-                </p>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 h-4 rounded-full overflow-hidden">
-                  <div className="bg-emerald-500 h-full w-3/4"></div>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">Selecciona el nivel de dificultad de la IA:</p>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <Button
+                    className={`${
+                      selectedDifficulty === "easy"
+                        ? "bg-green-500 hover:bg-green-600"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                    onClick={() => handleSelectDifficulty("easy")}
+                  >
+                    Fácil
+                  </Button>
+                  <Button
+                    className={`${
+                      selectedDifficulty === "medium"
+                        ? "bg-yellow-500 hover:bg-yellow-600"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                    onClick={() => handleSelectDifficulty("medium")}
+                  >
+                    Medio
+                  </Button>
+                  <Button
+                    className={`${
+                      selectedDifficulty === "hard"
+                        ? "bg-red-500 hover:bg-red-600"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                    onClick={() => handleSelectDifficulty("hard")}
+                  >
+                    Difícil
+                  </Button>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Progreso: 75% completado</p>
+
+                <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <h3 className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+                    {selectedDifficulty === "easy" && "Nivel Fácil"}
+                    {selectedDifficulty === "medium" && "Nivel Medio"}
+                    {selectedDifficulty === "hard" && "Nivel Difícil"}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {selectedDifficulty === "easy" &&
+                      "La IA se enfoca en avanzar hacia su meta y coloca muros de forma ocasional. Ideal para principiantes."}
+                    {selectedDifficulty === "medium" &&
+                      "La IA alterna entre avanzar y defender, usando muros de forma más estratégica. Un desafío equilibrado."}
+                    {selectedDifficulty === "hard" &&
+                      "La IA planifica varios turnos adelante y coloca muros en lugares estratégicos. Un reto para jugadores experimentados."}
+                  </p>
+                </div>
               </div>
 
-              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white" onClick={handleCloseAIModal}>
-                Volver al menú
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1 border-gray-300 dark:border-gray-700"
+                  onClick={handleCloseAIModal}
+                >
+                  Cancelar
+                </Button>
+                <Button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white" onClick={handleStartAIGame}>
+                  Comenzar
+                </Button>
+              </div>
             </div>
           </Card>
         </div>

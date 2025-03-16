@@ -16,6 +16,9 @@ import {
   Sun,
   Home,
   Smartphone,
+  Brain,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react"
 
 // Color palette matching the game board
@@ -57,6 +60,10 @@ export default function GameUI() {
     returnToMenu,
     triggerSound,
     gameStarted,
+    isAIMode,
+    aiDifficulty,
+    isAIThinking,
+    aiError,
   } = useGameContext()
   const [showRules, setShowRules] = useState(false)
   const [showInfo, setShowInfo] = useState(true)
@@ -65,6 +72,7 @@ export default function GameUI() {
   const [isMobile, setIsMobile] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showSoundNotification, setShowSoundNotification] = useState(false)
+  const [showAIError, setShowAIError] = useState(false)
 
   // Detect mobile devices
   useEffect(() => {
@@ -112,6 +120,17 @@ export default function GameUI() {
       setShowSoundNotification(false)
     }
   }, [isMuted, gameStarted])
+
+  // Mostrar notificación de error de la IA
+  useEffect(() => {
+    if (aiError) {
+      setShowAIError(true)
+      const timer = setTimeout(() => {
+        setShowAIError(false)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [aiError])
 
   const currentPlayer = gameState.currentPlayer === 0 ? "Rojo" : "Azul"
   const wallsLeft = gameState.currentPlayer === 0 ? gameState.players[0].wallsLeft : gameState.players[1].wallsLeft
@@ -182,6 +201,38 @@ export default function GameUI() {
     setShowSoundNotification(false)
   }
 
+  const handleDismissAIError = () => {
+    setShowAIError(false)
+  }
+
+  // Obtener el texto de dificultad de la IA
+  const getAIDifficultyText = () => {
+    switch (aiDifficulty) {
+      case "easy":
+        return "Fácil"
+      case "medium":
+        return "Medio"
+      case "hard":
+        return "Difícil"
+      default:
+        return "Medio"
+    }
+  }
+
+  // Obtener el color de dificultad de la IA
+  const getAIDifficultyColor = () => {
+    switch (aiDifficulty) {
+      case "easy":
+        return "text-green-500 dark:text-green-400"
+      case "medium":
+        return "text-yellow-500 dark:text-yellow-400"
+      case "hard":
+        return "text-red-500 dark:text-red-400"
+      default:
+        return "text-yellow-500 dark:text-yellow-400"
+    }
+  }
+
   return (
     <>
       {/* Game info panel */}
@@ -205,8 +256,24 @@ export default function GameUI() {
             <div className="mt-2 space-y-2">
               <div className={`flex justify-between items-center p-2 rounded ${playerColors.light}`}>
                 <span className={`${COLORS.ui.text}`}>Turno:</span>
-                <span className={`font-bold ${playerColors.text}`}>Jugador {currentPlayer}</span>
+                <div className="flex items-center gap-1">
+                  <span className={`font-bold ${playerColors.text}`}>Jugador {currentPlayer}</span>
+                  {isAIMode && gameState.currentPlayer === 1 && (
+                    <Brain className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                  )}
+                </div>
               </div>
+
+              {isAIMode && (
+                <div className="flex justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                  <span className={`${COLORS.ui.text}`}>IA:</span>
+                  <span className={`font-bold ${getAIDifficultyColor()}`}>
+                    {getAIDifficultyText()}
+                    {isAIThinking && <Loader2 className="h-4 w-4 inline ml-1 animate-spin" />}
+                  </span>
+                </div>
+              )}
+
               <div className="flex justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
                 <span className={`${COLORS.ui.text}`}>Muros restantes:</span>
                 <span className="font-bold">{wallsLeft}</span>
@@ -222,6 +289,7 @@ export default function GameUI() {
                   variant={gameState.wallMode ? "default" : "outline"}
                   className={`flex-1 ${gameState.wallMode ? COLORS.actions.primary : COLORS.actions.outline}`}
                   onClick={handleToggleWallMode}
+                  disabled={isAIMode && (gameState.currentPlayer === 1 || isAIThinking)}
                 >
                   {gameState.wallMode ? "Mover" : "Muro"}
                 </Button>
@@ -231,6 +299,7 @@ export default function GameUI() {
                     variant="outline"
                     className={`flex-1 ${COLORS.actions.outline}`}
                     onClick={handleShowResetConfirm}
+                    disabled={isAIMode && (gameState.currentPlayer === 1 || isAIThinking)}
                   >
                     <RotateCcw className="mr-1 h-4 w-4" /> Reiniciar
                   </Button>
@@ -327,6 +396,20 @@ export default function GameUI() {
                 </ul>
               </div>
 
+              {isAIMode && (
+                <div>
+                  <h3 className="text-lg font-semibold text-emerald-500 dark:text-emerald-400">Modo IA</h3>
+                  <ul className={`list-disc pl-5 space-y-1 ${COLORS.ui.text}`}>
+                    <li>
+                      Estás jugando contra una IA de nivel{" "}
+                      <span className={getAIDifficultyColor()}>{getAIDifficultyText()}</span>.
+                    </li>
+                    <li>La IA controlará al jugador Azul y tú al jugador Rojo.</li>
+                    <li>Cada nivel de IA tiene diferentes estrategias y habilidades.</li>
+                  </ul>
+                </div>
+              )}
+
               <div>
                 <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-300">Créditos</h3>
                 <p className={`${COLORS.ui.text} text-sm`}>
@@ -409,7 +492,15 @@ export default function GameUI() {
               <p
                 className={`text-xl font-medium mb-6 ${gameState.winner === 0 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"}`}
               >
-                El Jugador {gameState.winner === 0 ? "Rojo" : "Azul"} ha ganado
+                {isAIMode && gameState.winner === 1 ? (
+                  <span className="flex items-center justify-center gap-2">
+                    La IA <Brain className="h-5 w-5" /> ha ganado
+                  </span>
+                ) : isAIMode && gameState.winner === 0 ? (
+                  "¡Has ganado a la IA!"
+                ) : (
+                  `El Jugador ${gameState.winner === 0 ? "Rojo" : "Azul"} ha ganado`
+                )}
               </p>
 
               <div className="space-y-3">
@@ -455,6 +546,31 @@ export default function GameUI() {
             size="icon"
             onClick={handleDismissSoundNotification}
             className="ml-2 hover:bg-yellow-600/80 dark:hover:bg-yellow-700/80 rounded-full h-6 w-6 p-0"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Cerrar</span>
+          </Button>
+        </div>
+      )}
+
+      {/* AI thinking indicator */}
+      {isAIMode && isAIThinking && gameState.currentPlayer === 1 && (
+        <div className="fixed left-1/2 transform -translate-x-1/2 bg-blue-500/80 dark:bg-blue-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg z-[100] flex items-center gap-2 top-20 animate-in fade-in slide-in-from-top duration-300">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>La IA está pensando...</span>
+        </div>
+      )}
+
+      {/* AI error notification */}
+      {showAIError && aiError && (
+        <div className="fixed left-1/2 transform -translate-x-1/2 bg-red-500/80 dark:bg-red-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg z-[100] flex items-center gap-2 top-20 animate-in fade-in slide-in-from-top duration-300">
+          <AlertTriangle className="h-5 w-5" />
+          <span>{aiError}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDismissAIError}
+            className="ml-2 hover:bg-red-600/80 dark:hover:bg-red-700/80 rounded-full h-6 w-6 p-0"
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Cerrar</span>

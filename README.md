@@ -1,41 +1,29 @@
 # Quoridor 3D - Juego de Estrategia en la Web 🏆🎲
 
 ![Quoridor 3D](https://upload.wikimedia.org/wikipedia/commons/8/84/Quoridor_1.jpg)
+
 **Versión web interactiva y visualmente atractiva de Quoridor, desarrollada con tecnologías modernas.**
 
 ---
 
 ## 📌 Descripción del Proyecto
 
-**Quoridor 3D** es una implementación web del famoso juego de estrategia **Quoridor**, renderizado en 3D con gráficos inmersivos y una interfaz intuitiva. Este juego se enfoca en una experiencia de usuario fluida, integrando animaciones, efectos visuales y una lógica de juego precisa.
+**Quoridor 3D** es una implementación web del famoso juego de estrategia **Quoridor**, renderizado en 3D con gráficos inmersivos y una interfaz intuitiva. Este juego ofrece una experiencia de usuario fluida, integrando animaciones, efectos visuales y una lógica de juego precisa.
+
+Los jugadores deben mover sus piezas a través del tablero mientras colocan muros estratégicamente para bloquear a su oponente y llegar al otro extremo primero.
 
 ---
 
 ## 🚀 Tecnologías Utilizadas
 
-- **React** + **Vercel v0** para el frontend
+- **React** + **Vite** para el frontend
 - **React Three Fiber** para gráficos en 3D
 - **Tailwind CSS** para estilización moderna y responsiva
 - **Context API** para la gestión del estado del juego
 - **GSAP** para animaciones y transiciones suaves
-- **Vite** para una carga rápida y optimizada
+- **ESLint** para mantener la calidad del código
 
 ---
-
-## 🎨 Inspiración y Diseño
-
-El proyecto se inspiró en la versión física del juego Quoridor, con un enfoque en mantener la estética minimalista pero visualmente atractiva. Se optó por una paleta de colores **pastel** para dar un aspecto más amigable y limpio, mejorando la experiencia visual.
-
----
-
-## 📋 Especificaciones Técnicas
-
-- **Tablero**: 9x9 con separación de ranuras para colocación de muros
-- **Movimientos**: Validación de posiciones según reglas oficiales
-- **Muros**: Restricción de colocación válida y bloqueo de caminos
-- **Cámara**: Rotación automática según el turno del jugador
-- **Indicadores**: Señalización de movimientos válidos y muros restantes
-- **Interfaz Adaptable**: Compatible con diferentes dispositivos y tamaños de pantalla
 
 ---
 
@@ -75,22 +63,75 @@ El proyecto se inspiró en la versión física del juego Quoridor, con un enfoqu
 
 ---
 
-## 📥 Instalación y Ejecución
+## 🎮 Características Principales
 
-1. Clona el repositorio:
-   ```bash
-   git clone git@github.com:XatoPo/Quoridor-3d-Game.git
-   cd Quoridor-3d-Game
-   ```
-2. Instala las dependencias:
-   ```bash
-   npm install
-   ```
-3. Inicia el proyecto en modo desarrollo:
-   ```bash
-   npm run dev
-   ```
-4. Accede en el navegador a `http://localhost:5173`
+✅ **Modo de Juego Estratégico**: Mueve tu pieza y coloca muros estratégicamente.
+✅ **Gráficos en 3D**: Implementados con Three.js para una experiencia inmersiva.
+✅ **Modo Oscuro**: Adaptación automática a la configuración del usuario.
+✅ **Detección de Dispositivos Móviles**: Interfaz y controles optimizados para móviles.
+✅ **Efectos de Sonido y Animaciones**: Uso de GSAP y React Three Fiber para transiciones suaves.
+✅ **Gestión de Estado Global**: Implementado con Context API.
+
+---
+
+## 📂 Estructura del Proyecto
+
+```
+Quoridor-3d-Game/
+│── public/            # Archivos estáticos
+│── src/
+│   ├── components/    # Componentes React
+│   │   ├── game-board.jsx
+│   │   ├── player-piece.jsx
+│   │   ├── wall-grid.jsx
+│   │   ├── game-ui.jsx
+│   │   ├── mobile-controls.jsx
+│   │   ├── sound-effects.jsx
+│   │   ├── welcome-screen.jsx
+│   ├── logic/         # Lógica del juego
+│   │   ├── quoridor-logic.js
+│   ├── context/       # Gestión del estado global
+│   │   ├── game-context.jsx
+│   ├── App.jsx        # Componente principal
+│   ├── main.jsx       # Punto de entrada de la app
+│── package.json       # Configuración del proyecto
+│── vite.config.js     # Configuración de Vite
+```
+
+---
+
+## 🔧 Instalación y Ejecución
+
+1️⃣ **Clonar el repositorio:**
+```sh
+  git clone https://github.com/usuario/Quoridor-3d-Game.git
+  cd Quoridor-3d-Game
+```
+
+2️⃣ **Instalar dependencias:**
+```sh
+  npm install
+```
+
+3️⃣ **Ejecutar el servidor de desarrollo:**
+```sh
+  npm run dev
+```
+
+4️⃣ **Abrir en el navegador:**
+```
+  http://localhost:5173
+```
+
+---
+
+## 📌 Mejoras Implementadas
+
+🔹 **Optimización de Lógica de Muros**: Evita colocar muros fuera de los límites y bloqueos ilegales.
+🔹 **Detección Automática de Movimientos Válidos**: Resalta posibles movimientos para los jugadores.
+🔹 **Sistema de Control Móvil Mejorado**: Controles adaptativos para pantallas táctiles.
+🔹 **Gestión de Sonidos**: Efectos de audio mejorados para una mejor experiencia.
+🔹 **Modo Oscuro Dinámico**: Sincronización con las preferencias del usuario.
 
 ---
 
@@ -107,5 +148,7 @@ El proyecto se inspiró en la versión física del juego Quoridor, con un enfoqu
 
 ## 📜 Licencia
 
-📩 _Desarrollado con pasión por Flavio Villanueva Medina_
+Este proyecto está bajo la licencia MIT. Siéntete libre de contribuir y mejorar el código.
 
+📩 **Contacto:** Si tienes alguna pregunta o sugerencia, no dudes en abrir un issue o contactarme. 😊
+📩 _Desarrollado con pasión por Flavio Villanueva Medina_

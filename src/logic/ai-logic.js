@@ -1,6 +1,6 @@
 import * as QuoridorLogic from "./quoridor-logic"
 
-// Eliminar console.log excesivos y mejorar la clase base de la IA
+// Clase base mejorada para la IA de Quoridor
 class QuoridorAI {
   constructor(playerIndex, difficulty = "medium") {
     this.playerIndex = playerIndex // Índice del jugador IA (0 o 1)
@@ -8,6 +8,18 @@ class QuoridorAI {
     this.difficulty = difficulty
     this.BOARD_SIZE = 9
     this.MAX_PATH_ITERATIONS = 1000 // Límite para evitar bucles infinitos
+
+    // Reglas reales del juego Quoridor
+    this.REAL_RULES = {
+      // Un muro no puede superponerse con otro muro
+      NO_OVERLAPPING_WALLS: true,
+      // Un muro no puede bloquear completamente el camino a la meta
+      NO_BLOCKING_PATH: true,
+      // No se puede saltar sobre un muro
+      NO_JUMPING_WALLS: true,
+      // No se puede colocar un muro fuera del tablero
+      NO_OUT_OF_BOUNDS_WALLS: true,
+    }
   }
 
   // Función principal para tomar decisiones
@@ -19,7 +31,7 @@ class QuoridorAI {
       const cleanGameState = this.sanitizeGameState(gameState)
 
       // Verificar que hay movimientos válidos disponibles
-      const validMoves = QuoridorLogic.getValidMoves(this.playerIndex, cleanGameState)
+      const validMoves = this.getValidMovesRespectingRules(this.playerIndex, cleanGameState)
 
       if (validMoves.length === 0) {
         console.error("IA: No hay movimientos válidos")
@@ -66,11 +78,150 @@ class QuoridorAI {
     return cleanState
   }
 
+  // Obtener movimientos válidos respetando las reglas reales del juego
+  getValidMovesRespectingRules(playerIndex, gameState) {
+    // Obtener los movimientos según la lógica actual
+    const validMoves = QuoridorLogic.getValidMoves(playerIndex, gameState)
+
+    // Si no estamos aplicando reglas estrictas, devolver los movimientos tal cual
+    if (!this.REAL_RULES.NO_JUMPING_WALLS) {
+      return validMoves
+    }
+
+    // Filtrar movimientos que no respetan las reglas reales
+    return validMoves.filter((move) => {
+      const player = gameState.players[playerIndex]
+
+      // Verificar si es un salto (movimiento de 2 casillas)
+      const isJump = Math.abs(move.x - player.x) > 1 || Math.abs(move.z - player.z) > 1
+
+      if (!isJump) return true // Los movimientos normales siempre son válidos
+
+      // Para saltos, verificar que no hay muros en el camino
+      const opponent = gameState.players[playerIndex === 0 ? 1 : 0]
+
+      // Verificar que el oponente está adyacente
+      const isOpponentAdjacent = Math.abs(player.x - opponent.x) + Math.abs(player.z - opponent.z) === 1
+
+      if (!isOpponentAdjacent) return false
+
+      // Verificar que no hay un muro entre el jugador y el oponente
+      if (QuoridorLogic.isMovementBlocked(player.x, player.z, opponent.x, opponent.z, gameState.walls)) {
+        return false
+      }
+
+      // Verificar que no hay un muro entre el oponente y la posición de salto
+      if (QuoridorLogic.isMovementBlocked(opponent.x, opponent.z, move.x, move.z, gameState.walls)) {
+        return false
+      }
+
+      return true
+    })
+  }
+
+  // Obtener muros válidos respetando las reglas reales del juego
+  getValidWallsRespectingRules(gameState) {
+    const validWalls = []
+
+    // Si el jugador no tiene muros, devolver array vacío
+    if (gameState.players[this.playerIndex].wallsLeft <= 0) {
+      return validWalls
+    }
+
+    // Recorrer todas las posiciones posibles para muros
+    for (let x = 0; x < 8; x++) {
+      for (let z = 0; z < 8; z++) {
+        // Probar muros horizontales
+        const horizontalWall = { x, z, orientation: "horizontal" }
+        if (this.isValidWallPlacementRespectingRules(horizontalWall, gameState)) {
+          validWalls.push(horizontalWall)
+        }
+
+        // Probar muros verticales
+        const verticalWall = { x, z, orientation: "vertical" }
+        if (this.isValidWallPlacementRespectingRules(verticalWall, gameState)) {
+          validWalls.push(verticalWall)
+        }
+      }
+    }
+
+    return validWalls
+  }
+
+  // Verificar si un muro es válido respetando las reglas reales
+  isValidWallPlacementRespectingRules(wallPos, gameState) {
+    // Verificar si el muro está dentro del tablero
+    if (this.REAL_RULES.NO_OUT_OF_BOUNDS_WALLS && !QuoridorLogic.isWallWithinBoard(wallPos)) {
+      return false
+    }
+
+    // Verificar si el muro se superpone con otro muro - VERSIÓN MÁS ESTRICTA
+    if (this.REAL_RULES.NO_OVERLAPPING_WALLS) {
+      for (const existingWall of gameState.walls) {
+        // Comprobar superposición exacta
+        if (
+          existingWall.x === wallPos.x &&
+          existingWall.z === wallPos.z &&
+          existingWall.orientation === wallPos.orientation
+        ) {
+          return false
+        }
+
+        // Comprobar superposición parcial o adyacencia no permitida
+        if (wallPos.orientation === existingWall.orientation) {
+          // Misma orientación
+          if (wallPos.orientation === "horizontal") {
+            // Muros horizontales - no pueden estar en la misma fila y adyacentes
+            if (wallPos.z === existingWall.z && Math.abs(wallPos.x - existingWall.x) <= 1) {
+              return false
+            }
+          } else {
+            // Muros verticales - no pueden estar en la misma columna y adyacentes
+            if (wallPos.x === existingWall.x && Math.abs(wallPos.z - existingWall.z) <= 1) {
+              return false
+            }
+          }
+        } else {
+          // Orientaciones diferentes - comprobar intersecciones
+          const horizontal = wallPos.orientation === "horizontal" ? wallPos : existingWall
+          const vertical = wallPos.orientation === "horizontal" ? existingWall : wallPos
+
+          // Comprobar si los muros se cruzan
+          if (
+            vertical.x >= horizontal.x &&
+            vertical.x <= horizontal.x + 1 &&
+            horizontal.z >= vertical.z &&
+            horizontal.z <= vertical.z + 1
+          ) {
+            return false
+          }
+        }
+      }
+    }
+
+    // Verificar si el muro bloquea completamente el camino a la meta
+    if (this.REAL_RULES.NO_BLOCKING_PATH) {
+      // Crear un estado temporal con el nuevo muro
+      const tempWalls = [...gameState.walls, wallPos]
+      const tempGameState = { ...gameState, walls: tempWalls }
+
+      // Verificar que ambos jugadores tienen un camino a la meta
+      const player1HasPath = QuoridorLogic.hasPathToGoal(0, tempGameState)
+      const player2HasPath = QuoridorLogic.hasPathToGoal(1, tempGameState)
+
+      if (!player1HasPath || !player2HasPath) {
+        return false
+      }
+    }
+
+    return true
+  }
+
   // Movimiento aleatorio como último recurso
   makeRandomMove(gameState) {
     try {
       console.log("IA: Realizando movimiento aleatorio de emergencia")
-      const validMoves = QuoridorLogic.getValidMoves(this.playerIndex, gameState)
+      const validMoves = this.getValidMovesRespectingRules(this.playerIndex, gameState)
 
       if (validMoves.length > 0) {
         const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)]
@@ -79,15 +230,15 @@ class QuoridorAI {
 
       // Si no hay movimientos válidos, intentar colocar un muro aleatorio
       if (gameState.players[this.playerIndex].wallsLeft > 0) {
-        for (let attempts = 0; attempts < 20; attempts++) {
-          const x = Math.floor(Math.random() * 8)
-          const z = Math.floor(Math.random() * 8)
-          const orientation = Math.random() < 0.5 ? "horizontal" : "vertical"
+        const validWalls = this.getValidWallsRespectingRules(gameState)
 
-          const wallPos = { x, z, orientation }
-
-          if (QuoridorLogic.isValidWallPlacement(wallPos, gameState)) {
-            return { type: "wall", x, z, orientation }
+        if (validWalls.length > 0) {
+          const randomWall = validWalls[Math.floor(Math.random() * validWalls.length)]
+          return {
+            type: "wall",
+            x: randomWall.x,
+            z: randomWall.z,
+            orientation: randomWall.orientation,
           }
         }
       }
@@ -156,7 +307,7 @@ class QuoridorAI {
         }
 
         // Obtenemos todos los movimientos posibles
-        const validMoves = this.getValidMovesForPosition(current.x, current.z, gameState)
+        const validMoves = this.getValidMovesForPosition(current.x, current.z, gameState, playerIndex)
 
         for (const move of validMoves) {
           const moveKey = `${move.x},${move.z}`
@@ -209,15 +360,15 @@ class QuoridorAI {
   /**
    * Obtiene todos los movimientos válidos para una posición
    */
-  getValidMovesForPosition(x, z, gameState) {
+  getValidMovesForPosition(x, z, gameState, playerIndex) {
     try {
       // Creamos un estado temporal con el jugador en la posición dada
       const tempGameState = {
         ...gameState,
-        players: [...gameState.players.map((p, idx) => (idx === this.playerIndex ? { ...p, x, z } : p))],
+        players: [...gameState.players.map((p, idx) => (idx === playerIndex ? { ...p, x, z } : p))],
       }
 
-      return QuoridorLogic.getValidMoves(this.playerIndex, tempGameState)
+      return this.getValidMovesRespectingRules(playerIndex, tempGameState)
     } catch (error) {
       console.error("IA: Error en getValidMovesForPosition", error)
       // En caso de error, devolver movimientos básicos filtrados por límites del tablero
@@ -279,6 +430,11 @@ class QuoridorAI {
   // Evaluación de muros mejorada con manejo de errores
   evaluateWall(wall, gameState) {
     try {
+      // Verificar si el muro respeta las reglas reales
+      if (!this.isValidWallPlacementRespectingRules(wall, gameState)) {
+        return -1000 // Muro inválido
+      }
+
       // Creamos un estado temporal con el nuevo muro
       const tempGameState = {
         ...gameState,
@@ -336,31 +492,7 @@ class QuoridorAI {
    * Encuentra todos los posibles muros válidos
    */
   findAllValidWalls(gameState) {
-    try {
-      const validWalls = []
-
-      // Recorremos todas las posiciones posibles para muros
-      for (let x = 0; x < 8; x++) {
-        for (let z = 0; z < 8; z++) {
-          // Probamos muros horizontales
-          const horizontalWall = { x, z, orientation: "horizontal" }
-          if (QuoridorLogic.isValidWallPlacement(horizontalWall, gameState)) {
-            validWalls.push(horizontalWall)
-          }
-
-          // Probamos muros verticales
-          const verticalWall = { x, z, orientation: "vertical" }
-          if (QuoridorLogic.isValidWallPlacement(verticalWall, gameState)) {
-            validWalls.push(verticalWall)
-          }
-        }
-      }
-
-      return validWalls
-    } catch (error) {
-      console.error("IA: Error en findAllValidWalls", error)
-      return [] // Devolver array vacío en caso de error
-    }
+    return this.getValidWallsRespectingRules(gameState)
   }
 
   /**
@@ -387,13 +519,13 @@ class QuoridorAI {
           const wall = { x: current.x - 1, z: minZ, orientation: "horizontal" }
 
           // Verificamos si el muro es válido y lo añadimos
-          if (QuoridorLogic.isValidWallPlacement(wall, gameState)) {
+          if (this.isValidWallPlacementRespectingRules(wall, gameState)) {
             blockingWalls.push(wall)
           }
 
           // También probamos el muro a la derecha
           const wallRight = { x: current.x, z: minZ, orientation: "horizontal" }
-          if (QuoridorLogic.isValidWallPlacement(wallRight, gameState)) {
+          if (this.isValidWallPlacementRespectingRules(wallRight, gameState)) {
             blockingWalls.push(wallRight)
           }
         } else {
@@ -402,13 +534,13 @@ class QuoridorAI {
           const wall = { x: minX, z: current.z - 1, orientation: "vertical" }
 
           // Verificamos si el muro es válido y lo añadimos
-          if (QuoridorLogic.isValidWallPlacement(wall, gameState)) {
+          if (this.isValidWallPlacementRespectingRules(wall, gameState)) {
             blockingWalls.push(wall)
           }
 
           // También probamos el muro abajo
           const wallDown = { x: minX, z: current.z, orientation: "vertical" }
-          if (QuoridorLogic.isValidWallPlacement(wallDown, gameState)) {
+          if (this.isValidWallPlacementRespectingRules(wallDown, gameState)) {
             blockingWalls.push(wallDown)
           }
         }
@@ -423,9 +555,10 @@ class QuoridorAI {
 }
 
 /**
- * IA de nivel fácil
- * - Prioriza su propio movimiento hacia la meta
- * - Coloca muros solo ocasionalmente
+ * IA de nivel fácil - MEJORADA PARA SER MÁS DIFÍCIL
+ * - Más agresiva en su avance hacia la meta
+ * - Coloca muros más estratégicamente
+ * - Mejor evaluación de movimientos
  */
 export class EasyAI extends QuoridorAI {
   constructor(playerIndex) {
@@ -437,12 +570,189 @@ export class EasyAI extends QuoridorAI {
       // Crear una copia limpia del estado para evitar problemas de referencia
       const cleanGameState = this.sanitizeGameState(gameState)
 
-      // 80% de probabilidad de mover, 20% de colocar muro
-      const shouldMove = Math.random() < 0.8 || cleanGameState.players[this.playerIndex].wallsLeft === 0
+      // 70% de probabilidad de mover, 30% de colocar muro (más agresivo con los muros)
+      const shouldMove = Math.random() < 0.7 || cleanGameState.players[this.playerIndex].wallsLeft === 0
 
       if (shouldMove) {
         // Obtener movimientos válidos
-        const validMoves = QuoridorLogic.getValidMoves(this.playerIndex, cleanGameState)
+        const validMoves = this.getValidMovesRespectingRules(this.playerIndex, cleanGameState)
+        if (validMoves.length === 0) return this.makeRandomMove(cleanGameState)
+
+        // Evaluar cada movimiento con la función mejorada
+        let bestMove = validMoves[0]
+        let bestScore = this.evaluateMove(bestMove, cleanGameState)
+
+        for (const move of validMoves) {
+          const score = this.evaluateMove(move, cleanGameState)
+          if (score > bestScore) {
+            bestScore = score
+            bestMove = move
+          }
+        }
+
+        // Incluso en nivel fácil, ahora consideramos el camino más corto
+        if (bestScore < 5 && validMoves.length > 1) {
+          const shortestPath = this.findShortestPath(cleanGameState, this.playerIndex)
+          if (shortestPath && shortestPath.length > 1) {
+            const nextStep = shortestPath[1]
+            const pathMove = validMoves.find((move) => move.x === nextStep.x && move.z === nextStep.z)
+            if (pathMove) {
+              bestMove = pathMove
+            }
+          }
+        }
+
+        console.log("IA (fácil): Moviendo ficha", bestMove)
+        return { type: "move", x: bestMove.x, z: bestMove.z }
+      } else {
+        // Intentar colocar un muro - ahora más estratégico
+        // Primero intentamos bloquear al oponente si está cerca de la meta
+        const opponent = cleanGameState.players[this.opponentIndex]
+        const opponentGoalZ = this.opponentIndex === 0 ? this.BOARD_SIZE - 1 : 0
+        const isOpponentCloseToGoal = Math.abs(opponent.z - opponentGoalZ) <= 3
+
+        if (isOpponentCloseToGoal) {
+          // Buscar muros que bloqueen al oponente
+          const blockingWalls = this.findBlockingWalls(cleanGameState)
+          if (blockingWalls.length > 0) {
+            // Elegir un muro aleatorio entre los bloqueantes
+            const randomIndex = Math.floor(Math.random() * blockingWalls.length)
+            const wall = blockingWalls[randomIndex]
+            console.log("IA (fácil): Colocando muro bloqueante", wall)
+            return { type: "wall", x: wall.x, z: wall.z, orientation: wall.orientation }
+          }
+        }
+
+        // Si no hay muros bloqueantes o el oponente no está cerca, colocar un muro aleatorio
+        const validWalls = this.getValidWallsRespectingRules(cleanGameState)
+        if (validWalls.length === 0) {
+          // Si no hay muros válidos, movemos
+          return this.makeDecision({ ...cleanGameState, wallMode: false })
+        }
+
+        // Seleccionamos un muro aleatorio
+        const randomIndex = Math.floor(Math.random() * validWalls.length)
+        const wall = validWalls[randomIndex]
+
+        console.log("IA (fácil): Colocando muro", wall)
+        return { type: "wall", x: wall.x, z: wall.z, orientation: wall.orientation }
+      }
+    } catch (error) {
+      console.error("IA (fácil): Error en makeDecision", error)
+      return this.makeRandomMove(gameState)
+    }
+  }
+
+  // Evaluación de movimientos mejorada para nivel fácil
+  evaluateMove(move, gameState) {
+    try {
+      const player = gameState.players[this.playerIndex]
+      const opponent = gameState.players[this.opponentIndex]
+      const goalZ = this.playerIndex === 0 ? this.BOARD_SIZE - 1 : 0
+
+      // Distancia actual a la meta
+      const currentDistance = Math.abs(player.z - goalZ)
+
+      // Distancia después del movimiento
+      const newDistance = Math.abs(move.z - goalZ)
+
+      // Mejora en la distancia (positiva si nos acercamos a la meta)
+      const distanceImprovement = currentDistance - newDistance
+
+      // Puntuación base: priorizar acercarse a la meta (más agresivo)
+      let score = 15 * distanceImprovement
+
+      // Bonus por estar más cerca de la meta que el oponente
+      const opponentDistance = this.distanceToGoal(opponent, this.opponentIndex)
+      if (newDistance < opponentDistance) {
+        score += 8
+      }
+
+      // Bonus por moverse hacia la meta
+      if (this.playerIndex === 0 && move.z > player.z) {
+        score += 5
+      } else if (this.playerIndex === 1 && move.z < player.z) {
+        score += 5
+      }
+
+      // Bonus por moverse hacia el centro del tablero (más opciones)
+      const centerBonus = 3 - Math.abs(move.x - 4) / 2
+      score += centerBonus
+
+      // Verificar si estamos bloqueados por el oponente
+      const isBlockedByOpponent =
+        Math.abs(player.x - opponent.x) + Math.abs(player.z - opponent.z) === 1 &&
+        ((this.playerIndex === 0 && opponent.z > player.z) || (this.playerIndex === 1 && opponent.z < player.z))
+
+      // Si estamos bloqueados, dar puntos a movimientos laterales o retrocesos
+      if (isBlockedByOpponent) {
+        // Movimientos laterales
+        if (move.z === player.z) {
+          score += 7
+        }
+        // Retrocesos (solo cuando es necesario)
+        else if ((this.playerIndex === 0 && move.z < player.z) || (this.playerIndex === 1 && move.z > player.z)) {
+          score += 4
+        }
+      }
+
+      return score
+    } catch (error) {
+      console.error("IA (fácil): Error en evaluateMove", error)
+      return 0 // Valor neutro en caso de error
+    }
+  }
+}
+
+/**
+ * IA de nivel intermedio - MEJORADA PARA SER MÁS DIFÍCIL
+ * - Análisis más profundo de los movimientos
+ * - Mejor estrategia de muros
+ * - Considera más factores en sus decisiones
+ */
+export class MediumAI extends QuoridorAI {
+  constructor(playerIndex) {
+    super(playerIndex, "medium")
+  }
+
+  makeDecision(gameState) {
+    try {
+      // Crear una copia limpia del estado para evitar problemas de referencia
+      const cleanGameState = this.sanitizeGameState(gameState)
+
+      // Analizar la situación actual del juego
+      const player = cleanGameState.players[this.playerIndex]
+      const opponent = cleanGameState.players[this.opponentIndex]
+
+      // Calcular distancias a la meta
+      const playerDistance = this.distanceToGoal(player, this.playerIndex)
+      const opponentDistance = this.distanceToGoal(opponent, this.opponentIndex)
+
+      // Determinar si estamos en ventaja o desventaja
+      const isWinning = playerDistance < opponentDistance
+      const isCloseToGoal = playerDistance <= 3
+      const isOpponentCloseToGoal = opponentDistance <= 3
+
+      // Ajustar probabilidad de mover/colocar muro según la situación
+      let moveProb = 0.6 // Probabilidad base
+
+      if (isWinning && !isOpponentCloseToGoal) {
+        // Si vamos ganando y el oponente no está cerca de su meta, priorizar movimiento
+        moveProb = 0.8
+      } else if (isOpponentCloseToGoal) {
+        // Si el oponente está cerca de su meta, priorizar muros
+        moveProb = 0.3
+      } else if (isCloseToGoal) {
+        // Si estamos cerca de nuestra meta, priorizar movimiento
+        moveProb = 0.9
+      }
+
+      // Decidir si mover o colocar muro
+      const shouldMove = Math.random() < moveProb || cleanGameState.players[this.playerIndex].wallsLeft === 0
+
+      if (shouldMove) {
+        // Obtener movimientos válidos
+        const validMoves = this.getValidMovesRespectingRules(this.playerIndex, cleanGameState)
         if (validMoves.length === 0) return this.makeRandomMove(cleanGameState)
 
         // Evaluar cada movimiento
@@ -457,86 +767,19 @@ export class EasyAI extends QuoridorAI {
           }
         }
 
-        console.log("IA (fácil): Moviendo ficha", bestMove)
-        return { type: "move", x: bestMove.x, z: bestMove.z }
-      } else {
-        // Intentar colocar un muro
-        // En nivel fácil, solo consideramos algunos muros aleatorios para bloquear
-        const validWalls = this.findAllValidWalls(cleanGameState)
-        if (validWalls.length === 0) {
-          // Si no hay muros válidos, movemos
-          return this.makeDecision({ ...cleanGameState, wallMode: false })
-        }
+        // Considerar el camino más corto si no hay un movimiento claramente bueno
+        if (bestScore < 8) {
+          const shortestPath = this.findShortestPath(cleanGameState, this.playerIndex)
 
-        // Seleccionamos un muro aleatorio entre los primeros 5 (o menos si hay menos)
-        const randomIndex = Math.floor(Math.random() * Math.min(5, validWalls.length))
-        const wall = validWalls[randomIndex]
+          if (shortestPath && shortestPath.length > 1) {
+            const nextStep = shortestPath[1] // El siguiente paso en el camino óptimo
 
-        console.log("IA (fácil): Colocando muro", wall)
-        return { type: "wall", x: wall.x, z: wall.z, orientation: wall.orientation }
-      }
-    } catch (error) {
-      console.error("IA (fácil): Error en makeDecision", error)
-      return this.makeRandomMove(gameState)
-    }
-  }
+            // Buscar ese movimiento entre los válidos
+            const pathMove = validMoves.find((move) => move.x === nextStep.x && move.z === nextStep.z)
 
-  // En nivel fácil, evaluamos los movimientos de forma simple
-  evaluateMove(move, gameState) {
-    try {
-      const player = gameState.players[this.playerIndex]
-      const goalZ = this.playerIndex === 0 ? this.BOARD_SIZE - 1 : 0
-
-      // Distancia actual a la meta
-      const currentDistance = Math.abs(player.z - goalZ)
-
-      // Distancia después del movimiento
-      const newDistance = Math.abs(move.z - goalZ)
-
-      // Mejora en la distancia (positiva si nos acercamos a la meta)
-      const distanceImprovement = currentDistance - newDistance
-
-      // Puntuación simple: priorizar acercarse a la meta
-      return 10 * distanceImprovement
-    } catch (error) {
-      console.error("IA (fácil): Error en evaluateMove", error)
-      return 0 // Valor neutro en caso de error
-    }
-  }
-}
-
-/**
- * IA de nivel intermedio
- * - Analiza los movimientos del oponente
- * - Alterna entre avanzar y defender
- */
-export class MediumAI extends QuoridorAI {
-  constructor(playerIndex) {
-    super(playerIndex, "medium")
-  }
-
-  makeDecision(gameState) {
-    try {
-      // Crear una copia limpia del estado para evitar problemas de referencia
-      const cleanGameState = this.sanitizeGameState(gameState)
-
-      // 60% de probabilidad de mover, 40% de colocar muro
-      const shouldMove = Math.random() < 0.6 || cleanGameState.players[this.playerIndex].wallsLeft === 0
-
-      if (shouldMove) {
-        // Obtener movimientos válidos
-        const validMoves = QuoridorLogic.getValidMoves(this.playerIndex, cleanGameState)
-        if (validMoves.length === 0) return this.makeRandomMove(cleanGameState)
-
-        // Evaluar cada movimiento
-        let bestMove = validMoves[0]
-        let bestScore = this.evaluateMove(bestMove, cleanGameState)
-
-        for (const move of validMoves) {
-          const score = this.evaluateMove(move, cleanGameState)
-          if (score > bestScore) {
-            bestScore = score
-            bestMove = move
+            if (pathMove) {
+              bestMove = pathMove
+            }
           }
         }
 
@@ -572,15 +815,15 @@ export class MediumAI extends QuoridorAI {
           }
         }
 
-        // Si no encontramos un buen muro bloqueante, probamos con muros aleatorios
-        const validWalls = this.findAllValidWalls(cleanGameState)
+        // Si no encontramos un buen muro bloqueante, probamos con muros estratégicos
+        const validWalls = this.getValidWallsRespectingRules(cleanGameState)
         if (validWalls.length === 0) {
           // Si no hay muros válidos, movemos
           return this.makeDecision({ ...cleanGameState, wallMode: false })
         }
 
-        // Evaluamos algunos muros aleatorios (para eficiencia)
-        const wallsToEvaluate = validWalls.slice(0, Math.min(10, validWalls.length))
+        // Evaluamos más muros para encontrar el mejor
+        const wallsToEvaluate = validWalls.slice(0, Math.min(15, validWalls.length))
         let bestWall = wallsToEvaluate[0]
         let bestScore = this.evaluateWall(bestWall, cleanGameState)
 
@@ -592,8 +835,8 @@ export class MediumAI extends QuoridorAI {
           }
         }
 
-        // Si el mejor muro tiene una puntuación positiva, lo colocamos
-        if (bestScore > 0) {
+        // Umbral más bajo para colocar muros
+        if (bestScore > -2) {
           console.log("IA (medio): Colocando muro estratégico", bestWall)
           return {
             type: "wall",
@@ -611,23 +854,250 @@ export class MediumAI extends QuoridorAI {
       return this.makeRandomMove(gameState)
     }
   }
+
+  // Evaluación de movimientos mejorada para nivel medio
+  evaluateMove(move, gameState) {
+    try {
+      const player = gameState.players[this.playerIndex]
+      const opponent = gameState.players[this.opponentIndex]
+
+      // Distancia actual a la meta
+      const currentDistance = this.distanceToGoal(player, this.playerIndex)
+
+      // Distancia después del movimiento
+      const newDistance = this.distanceToGoal({ x: move.x, z: move.z }, this.playerIndex)
+
+      // Mejora en la distancia
+      const distanceImprovement = currentDistance - newDistance
+
+      // Distancia del oponente a su meta
+      const opponentDistance = this.distanceToGoal(opponent, this.opponentIndex)
+
+      // Puntuación base: priorizar acercarse a la meta
+      let score = 12 * distanceImprovement
+
+      // Bonus por estar más cerca de la meta que el oponente
+      if (newDistance < opponentDistance) {
+        score += 8
+      }
+
+      // Bonus por moverse hacia la meta
+      if (this.playerIndex === 0 && move.z > player.z) {
+        score += 5
+      } else if (this.playerIndex === 1 && move.z < player.z) {
+        score += 5
+      }
+
+      // Considerar la posición estratégica en el tablero
+      // Preferir el centro del tablero para más opciones
+      const centerBonus = 5 - Math.abs(move.x - 4)
+      score += centerBonus
+
+      // Evitar quedar adyacente al oponente en desventaja
+      const willBeAdjacentToOpponent = Math.abs(move.x - opponent.x) + Math.abs(move.z - opponent.z) === 1
+      if (willBeAdjacentToOpponent) {
+        // Si el oponente está más cerca de su meta, es una desventaja
+        if (opponentDistance < newDistance) {
+          score -= 5
+        }
+      }
+
+      // Considerar el camino más corto
+      const tempGameState = {
+        ...gameState,
+        players: [
+          ...gameState.players.map((p, idx) => (idx === this.playerIndex ? { ...p, x: move.x, z: move.z } : p)),
+        ],
+      }
+
+      const pathAfterMove = this.findShortestPath(tempGameState, this.playerIndex)
+      if (pathAfterMove && pathAfterMove.length > 0) {
+        // Bonus por reducir la longitud del camino
+        const currentPath = this.findShortestPath(gameState, this.playerIndex)
+        if (currentPath && currentPath.length > 0) {
+          const pathReduction = currentPath.length - pathAfterMove.length
+          score += 3 * pathReduction
+        }
+      }
+
+      // Bonus por moverse a una posición desde la que se pueden colocar muros estratégicos
+      if (gameState.players[this.playerIndex].wallsLeft > 0) {
+        const potentialWallPositions = [
+          { x: move.x - 1, z: move.z - 1 },
+          { x: move.x, z: move.z - 1 },
+          { x: move.x - 1, z: move.z },
+          { x: move.x, z: move.z },
+        ]
+
+        for (const pos of potentialWallPositions) {
+          if (pos.x >= 0 && pos.x < 8 && pos.z >= 0 && pos.z < 8) {
+            const horizontalWall = { ...pos, orientation: "horizontal" }
+            const verticalWall = { ...pos, orientation: "vertical" }
+
+            if (
+              this.isValidWallPlacementRespectingRules(horizontalWall, gameState) ||
+              this.isValidWallPlacementRespectingRules(verticalWall, gameState)
+            ) {
+              score += 2
+              break
+            }
+          }
+        }
+      }
+
+      return score
+    } catch (error) {
+      console.error("IA (medio): Error en evaluateMove", error)
+      return 0
+    }
+  }
+
+  // Evaluación de muros mejorada
+  evaluateWall(wall, gameState) {
+    try {
+      // Verificar si el muro respeta las reglas reales
+      if (!this.isValidWallPlacementRespectingRules(wall, gameState)) {
+        return -1000 // Muro inválido
+      }
+
+      // Creamos un estado temporal con el nuevo muro
+      const tempGameState = {
+        ...gameState,
+        walls: [...gameState.walls, wall],
+      }
+
+      // Camino actual del oponente
+      const originalOpponentPath = this.findShortestPath(gameState, this.opponentIndex)
+      if (!originalOpponentPath || originalOpponentPath.length === 0) return -1000 // No hay camino, no debería ocurrir
+
+      // Camino del oponente después de colocar el muro
+      const newOpponentPath = this.findShortestPath(tempGameState, this.opponentIndex)
+      if (!newOpponentPath || newOpponentPath.length === 0) return -1000 // El muro bloquea completamente al oponente, no es válido
+
+      // Camino actual del jugador IA
+      const originalAIPath = this.findShortestPath(gameState, this.playerIndex)
+      if (!originalAIPath || originalAIPath.length === 0) return -1000 // No hay camino, no debería ocurrir
+
+      // Camino del jugador IA después de colocar el muro
+      const newAIPath = this.findShortestPath(tempGameState, this.playerIndex)
+      if (!newAIPath || newAIPath.length === 0) return -1000 // El muro bloquea al propio jugador, no es válido
+
+      // Diferencia en la longitud del camino del oponente
+      const opponentPathDifference = newOpponentPath.length - originalOpponentPath.length
+
+      // Diferencia en la longitud del camino del jugador IA
+      const aiPathDifference = newAIPath.length - originalAIPath.length
+
+      // Puntuación base: priorizar aumentar el camino del oponente sin afectar demasiado al propio
+      let score = 12 * opponentPathDifference - 6 * aiPathDifference
+
+      // Bonus por bloquear al oponente cerca de su meta
+      const opponent = gameState.players[this.opponentIndex]
+      const opponentGoalZ = this.opponentIndex === 0 ? this.BOARD_SIZE - 1 : 0
+      const isOpponentCloseToGoal = Math.abs(opponent.z - opponentGoalZ) <= 3
+
+      if (isOpponentCloseToGoal && opponentPathDifference > 0) {
+        score += 20
+      }
+
+      // Bonus por bloquear el camino óptimo del oponente
+      if (opponentPathDifference >= 2) {
+        score += 10
+      }
+
+      // Penalización por usar muros cuando quedan pocos
+      const wallsLeft = gameState.players[this.playerIndex].wallsLeft
+      if (wallsLeft <= 2) {
+        score -= 15
+      } else if (wallsLeft <= 4) {
+        score -= 5
+      }
+
+      // Bonus por usar muros cuando vamos perdiendo
+      const player = gameState.players[this.playerIndex]
+      const playerGoalZ = this.playerIndex === 0 ? this.BOARD_SIZE - 1 : 0
+      const playerDistance = Math.abs(player.z - playerGoalZ)
+      const opponentDistance = Math.abs(opponent.z - opponentGoalZ)
+
+      if (playerDistance > opponentDistance && opponentPathDifference > 0) {
+        score += 8
+      }
+
+      return score
+    } catch (error) {
+      console.error("IA (medio): Error al evaluar muro", error)
+      return -1000 // Valor negativo para evitar este muro
+    }
+  }
 }
 
 /**
- * IA de nivel difícil
- * - Usa minimax para planificar varios turnos adelante
- * - Coloca muros estratégicamente
+ * IA de nivel difícil - MEJORADA PARA SER MÁS DIFÍCIL
+ * - Minimax más profundo
+ * - Mejor evaluación de estados
+ * - Estrategia más avanzada
  */
 export class HardAI extends QuoridorAI {
   constructor(playerIndex) {
     super(playerIndex, "hard")
-    this.MAX_DEPTH = 2 // Reducido para evitar problemas de rendimiento
+    this.MAX_DEPTH = 3 // Aumentado para mayor dificultad
   }
 
   makeDecision(gameState) {
     try {
       // Crear una copia limpia del estado para evitar problemas de referencia
       const cleanGameState = this.sanitizeGameState(gameState)
+
+      // Analizar la situación actual
+      const player = cleanGameState.players[this.playerIndex]
+      const opponent = cleanGameState.players[this.opponentIndex]
+
+      // Calcular distancias a la meta
+      const playerDistance = this.distanceToGoal(player, this.playerIndex)
+      const opponentDistance = this.distanceToGoal(opponent, this.opponentIndex)
+
+      // Si estamos muy cerca de la meta y tenemos ventaja, ir directo
+      if (playerDistance <= 2 && playerDistance < opponentDistance) {
+        const shortestPath = this.findShortestPath(cleanGameState, this.playerIndex)
+        if (shortestPath && shortestPath.length > 1) {
+          const nextStep = shortestPath[1]
+          const validMoves = this.getValidMovesRespectingRules(this.playerIndex, cleanGameState)
+          const directMove = validMoves.find((move) => move.x === nextStep.x && move.z === nextStep.z)
+
+          if (directMove) {
+            console.log("IA (difícil): Movimiento directo a la meta", directMove)
+            return { type: "move", x: directMove.x, z: directMove.z }
+          }
+        }
+      }
+
+      // Si el oponente está muy cerca de la meta, priorizar bloquearlo
+      if (opponentDistance <= 2 && opponentDistance <= playerDistance) {
+        const blockingWalls = this.findBlockingWalls(cleanGameState)
+        if (blockingWalls.length > 0) {
+          // Evaluar cada muro bloqueante
+          let bestWall = blockingWalls[0]
+          let bestScore = this.evaluateWall(bestWall, cleanGameState)
+
+          for (const wall of blockingWalls) {
+            const score = this.evaluateWall(wall, cleanGameState)
+            if (score > bestScore) {
+              bestScore = score
+              bestWall = wall
+            }
+          }
+
+          if (bestScore > 0) {
+            console.log("IA (difícil): Bloqueando oponente cerca de meta", bestWall)
+            return {
+              type: "wall",
+              x: bestWall.x,
+              z: bestWall.z,
+              orientation: bestWall.orientation,
+            }
+          }
+        }
+      }
 
       // En nivel difícil, usamos minimax para decidir entre mover o colocar muro
       const result = this.minimax(cleanGameState, 0, true, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
@@ -703,7 +1173,7 @@ export class HardAI extends QuoridorAI {
       console.error("IA (difícil): Error en minimax", error)
       // En caso de error, devolver una acción aleatoria
       const playerIndex = isMaximizing ? this.playerIndex : this.opponentIndex
-      const validMoves = QuoridorLogic.getValidMoves(playerIndex, gameState)
+      const validMoves = this.getValidMovesRespectingRules(playerIndex, gameState)
 
       if (validMoves.length > 0) {
         const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)]
@@ -725,7 +1195,7 @@ export class HardAI extends QuoridorAI {
       const actions = []
 
       // Añadimos movimientos
-      const validMoves = QuoridorLogic.getValidMoves(playerIndex, gameState)
+      const validMoves = this.getValidMovesRespectingRules(playerIndex, gameState)
       for (const move of validMoves) {
         actions.push({ type: "move", x: move.x, z: move.z })
       }
@@ -745,13 +1215,38 @@ export class HardAI extends QuoridorAI {
           })
         }
 
-        // Añadimos algunos muros aleatorios para diversidad
-        const allValidWalls = this.findAllValidWalls(gameState)
-        const randomWalls = allValidWalls
-          .filter((w) => !blockingWalls.some((bw) => bw.x === w.x && bw.z === w.z && bw.orientation === w.orientation))
-          .slice(0, Math.min(5, allValidWalls.length))
+        // Añadimos algunos muros estratégicos para diversidad
+        const allValidWalls = this.getValidWallsRespectingRules(gameState)
 
-        for (const wall of randomWalls) {
+        // Filtrar muros que no sean bloqueantes pero que sean estratégicos
+        const strategicWalls = allValidWalls.filter((wall) => {
+          // Evaluar si el muro es estratégico
+          const tempGameState = {
+            ...gameState,
+            walls: [...gameState.walls, wall],
+          }
+
+          // Verificar si el muro aumenta el camino del oponente
+          const originalOpponentPath = this.findShortestPath(
+            gameState,
+            playerIndex === this.playerIndex ? this.opponentIndex : this.playerIndex,
+          )
+          const newOpponentPath = this.findShortestPath(
+            tempGameState,
+            playerIndex === this.playerIndex ? this.opponentIndex : this.playerIndex,
+          )
+
+          return (
+            newOpponentPath &&
+            originalOpponentPath &&
+            newOpponentPath.length > originalOpponentPath.length &&
+            !blockingWalls.some((bw) => bw.x === wall.x && bw.z === wall.z && bw.orientation === wall.orientation)
+          )
+        })
+
+        // Añadir muros estratégicos (limitados para eficiencia)
+        const wallsToAdd = strategicWalls.slice(0, Math.min(8, strategicWalls.length))
+        for (const wall of wallsToAdd) {
           actions.push({
             type: "wall",
             x: wall.x,
@@ -765,7 +1260,7 @@ export class HardAI extends QuoridorAI {
     } catch (error) {
       console.error("IA (difícil): Error en generatePossibleActions", error)
       // En caso de error, devolver al menos un movimiento aleatorio si es posible
-      const validMoves = QuoridorLogic.getValidMoves(playerIndex, gameState)
+      const validMoves = this.getValidMovesRespectingRules(playerIndex, gameState)
       if (validMoves.length > 0) {
         return [{ type: "move", x: validMoves[0].x, z: validMoves[0].z }]
       }
@@ -835,7 +1330,7 @@ export class HardAI extends QuoridorAI {
   }
 
   /**
-   * Evalúa el estado del juego
+   * Evalúa el estado del juego con criterios más avanzados
    */
   evaluateGameState(gameState, isMaximizing) {
     try {
@@ -871,19 +1366,42 @@ export class HardAI extends QuoridorAI {
       let score = 0
 
       // Factores principales: longitud del camino y distancia
-      score += 20 * (opponentPathLength - aiPathLength)
-      score += 10 * (opponentDistance - aiDistance)
+      score += 25 * (opponentPathLength - aiPathLength)
+      score += 15 * (opponentDistance - aiDistance)
 
       // Factor secundario: muros restantes
-      score += 5 * (aiWallsLeft - opponentWallsLeft)
+      score += 8 * (aiWallsLeft - opponentWallsLeft)
 
       // Bonus por estar cerca de la meta
       if (aiDistance <= 2) {
-        score += 15
+        score += 20
+      } else if (aiDistance <= 4) {
+        score += 10
       }
 
       // Bonus por tener un camino más corto
       if (aiPathLength < opponentPathLength) {
+        score += 15
+      }
+
+      // Bonus por posición estratégica en el tablero
+      const centerBonus = 5 - Math.abs(aiPlayer.x - 4)
+      score += centerBonus
+
+      // Bonus por control del centro del tablero
+      const aiControlsCenter = Math.abs(aiPlayer.x - 4) <= 1 && Math.abs(aiPlayer.z - 4) <= 1
+      if (aiControlsCenter) {
+        score += 7
+      }
+
+      // Penalización si el oponente está muy cerca de la meta
+      if (opponentDistance <= 2) {
+        score -= 15
+      }
+
+      // Bonus por tener muros disponibles en etapas avanzadas
+      const gameProgress = 1 - (aiDistance + opponentDistance) / (2 * this.BOARD_SIZE)
+      if (gameProgress > 0.7 && aiWallsLeft > opponentWallsLeft) {
         score += 10
       }
 

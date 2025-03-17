@@ -15,6 +15,8 @@ const SOUNDS = {
 export default function SoundEffects() {
   const { gameState, lastAction, isMuted, soundTrigger } = useGameContext()
   const [soundsLoaded, setSoundsLoaded] = useState(false)
+  const soundQueueRef = useRef([])
+  const isPlayingRef = useRef(false)
 
   // Audio refs
   const moveSound = useRef(null)
@@ -71,41 +73,74 @@ export default function SoundEffects() {
 
       if (playPromise !== undefined) {
         playPromise.catch((e) => {
-          console.log("Music play prevented:", e)
+          // Ignore AbortError as it's expected when changing mute state
+          if (e.name !== "AbortError") {
+            console.log("Music play prevented:", e)
+          }
         })
       }
     }
   }, [isMuted, soundsLoaded])
 
+  // Función para reproducir sonidos de forma segura
+  const playSoundSafely = async (soundRef) => {
+    if (!soundRef.current || isMuted) return
+
+    try {
+      // Resetear el sonido
+      soundRef.current.pause()
+      soundRef.current.currentTime = 0
+
+      // Reproducir el sonido
+      await soundRef.current.play()
+    } catch (error) {
+      // Ignorar errores de AbortError ya que son esperados cuando se cambia rápidamente entre sonidos
+      if (error.name !== "AbortError") {
+        console.log("Sound play error:", error)
+      }
+    }
+  }
+
+  // Sistema de cola para reproducir sonidos en secuencia
+  const processQueue = async () => {
+    if (isPlayingRef.current || soundQueueRef.current.length === 0 || isMuted) return
+
+    isPlayingRef.current = true
+    const nextSound = soundQueueRef.current.shift()
+
+    try {
+      await playSoundSafely(nextSound)
+      // Pequeña pausa entre sonidos
+      setTimeout(() => {
+        isPlayingRef.current = false
+        processQueue()
+      }, 50)
+    } catch (error) {
+      isPlayingRef.current = false
+      processQueue()
+    }
+  }
+
+  // Añadir sonido a la cola
+  const queueSound = (soundRef) => {
+    if (!soundRef.current || isMuted) return
+
+    soundQueueRef.current.push(soundRef)
+    if (!isPlayingRef.current) {
+      processQueue()
+    }
+  }
+
   // Play sounds based on lastAction
   useEffect(() => {
     if (isMuted || !soundsLoaded || !lastAction) return
 
-    console.log("Playing sound for action:", lastAction)
-
-    const playSound = (soundRef) => {
-      if (!soundRef.current) return
-
-      // Stop and reset the sound
-      soundRef.current.pause()
-      soundRef.current.currentTime = 0
-
-      // Play the sound
-      const playPromise = soundRef.current.play()
-
-      if (playPromise !== undefined) {
-        playPromise.catch((e) => {
-          console.log("Sound play error:", e)
-        })
-      }
-    }
-
     if (lastAction === "movement") {
-      playSound(moveSound)
+      queueSound(moveSound)
     } else if (lastAction === "wall") {
-      playSound(wallSound)
+      queueSound(wallSound)
     } else if (lastAction === "click") {
-      playSound(clickSound)
+      queueSound(clickSound)
     }
   }, [lastAction, isMuted, soundsLoaded])
 
@@ -113,24 +148,14 @@ export default function SoundEffects() {
   useEffect(() => {
     if (isMuted || !soundsLoaded || soundTrigger === 0) return
 
-    console.log("Sound trigger activated:", soundTrigger)
-
-    if (clickSound.current) {
-      clickSound.current.pause()
-      clickSound.current.currentTime = 0
-      clickSound.current.play().catch((e) => console.log("Click sound error:", e))
-    }
+    queueSound(clickSound)
   }, [soundTrigger, isMuted, soundsLoaded])
 
   // Play win sound
   useEffect(() => {
     if (gameState.winner === null || isMuted || !soundsLoaded) return
 
-    console.log("Playing win sound")
-
-    if (winSound.current) {
-      winSound.current.play().catch((e) => console.log("Win sound error:", e))
-    }
+    queueSound(winSound)
   }, [gameState.winner, isMuted, soundsLoaded])
 
   return null

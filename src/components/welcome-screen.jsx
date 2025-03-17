@@ -169,7 +169,9 @@ export default function WelcomeScreen() {
         <CardFooter className="flex flex-col gap-2">
           {!showCredits ? (
             <>
-              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold" 
+              <Button
+              variant=""
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold" 
                 onClick={handleStart}>
                 Jugar 2 Jugadores (Local)
               </Button>

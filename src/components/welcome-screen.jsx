@@ -169,7 +169,8 @@ export default function WelcomeScreen() {
         <CardFooter className="flex flex-col gap-2">
           {!showCredits ? (
             <>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold" onClick={handleStart}>
+              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold" 
+                onClick={handleStart}>
                 Jugar 2 Jugadores (Local)
               </Button>
               <Button
@@ -180,7 +181,7 @@ export default function WelcomeScreen() {
                 VS IA (Alpha)
               </Button>
               <Button
-                variant="default"
+              variant=""
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
                 onClick={handleShowOnlineModal}
               >
@@ -188,7 +189,7 @@ export default function WelcomeScreen() {
               </Button>
               <Button
                 variant="outline"
-                className="w-full border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="w-full border-gray-600 dark:border-gray-700 text-gray-800 dark:text-white hover:bg-gray-400 dark:hover:bg-gray-700"
                 onClick={handleToggleCredits}
               >
                 Créditos

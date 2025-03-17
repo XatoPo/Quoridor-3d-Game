@@ -240,6 +240,7 @@ export default function WelcomeScreen() {
 
                 <div className="grid grid-cols-3 gap-3">
                   <Button
+                    variant="ghost"
                     className={`${
                       selectedDifficulty === "easy"
                         ? "bg-green-500 hover:bg-green-600 text-white font-bold border-2 border-green-600 shadow-md"
@@ -250,6 +251,7 @@ export default function WelcomeScreen() {
                     Fácil
                   </Button>
                   <Button
+                    variant="ghost"
                     className={`${
                       selectedDifficulty === "medium"
                         ? "bg-yellow-500 hover:bg-yellow-600 text-white font-bold border-2 border-yellow-600 shadow-md"
@@ -260,6 +262,7 @@ export default function WelcomeScreen() {
                     Medio
                   </Button>
                   <Button
+                    variant="ghost"
                     className={`${
                       selectedDifficulty === "hard"
                         ? "bg-red-500 hover:bg-red-600 text-white font-bold border-2 border-red-600 shadow-md"

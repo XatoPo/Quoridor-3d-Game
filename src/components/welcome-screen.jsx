@@ -294,7 +294,7 @@ export default function WelcomeScreen() {
               <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  className="flex-1 border-gray-300 dark:border-gray-700"
+                  className="flex-1 border-gray-400 dark:border-gray-700"
                   onClick={handleCloseAIModal}
                 >
                   Cancelar

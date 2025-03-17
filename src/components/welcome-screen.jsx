@@ -335,7 +335,9 @@ export default function WelcomeScreen() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">5% completado</p>
               </div>
 
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCloseOnlineModal}>
+              <Button 
+                variant=""
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCloseOnlineModal}>
                 Entendido
               </Button>
             </div>

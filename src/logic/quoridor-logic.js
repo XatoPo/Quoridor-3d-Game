@@ -429,6 +429,8 @@ export function makeMove(x, z, gameState) {
     currentPlayer: nextPlayer,
     validMoves: nextValidMoves,
     winner,
+    // Mantener el wallMode como estaba
+    wallMode: gameState.wallMode,
   }
 }
 
@@ -468,6 +470,8 @@ export function placeWall(x, z, orientation, gameState) {
       walls: newWalls,
       players: newPlayers,
     }),
+    // Mantener el wallMode como estaba
+    wallMode: gameState.wallMode,
   }
 
   return nextGameState

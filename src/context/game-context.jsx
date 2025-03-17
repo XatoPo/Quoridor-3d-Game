@@ -20,7 +20,7 @@ export function GameProvider({ children }) {
   const [isAIMode, setIsAIMode] = useState(false)
   const [aiDifficulty, setAiDifficulty] = useState("medium")
   const [isAIThinking, setIsAIThinking] = useState(false)
-  // Eliminar la función forceNextTurn y la variable aiStuck
+  const [aiStuck, setAiStuck] = useState(false)
   const [aiError, setAiError] = useState(null)
 
   // Referencia para el temporizador de seguridad de la IA
@@ -44,7 +44,7 @@ export function GameProvider({ children }) {
     }
   }, [state])
 
-  // Modificar la función makeAIMove para garantizar que siempre se tome una acción
+  // Modificar la función makeAIMove para que ignore el estado wallMode actual
   const makeAIMove = () => {
     if (!aiPlayer || !isAIMode) return
 
@@ -56,6 +56,9 @@ export function GameProvider({ children }) {
 
     try {
       console.log("IA: Iniciando turno")
+
+      // Guardar el estado actual de wallMode para restaurarlo después
+      const currentWallMode = state.wallMode
 
       // Verificar que hay movimientos válidos para la IA
       const validMoves = QuoridorLogic.getValidMoves(1, state)
@@ -69,7 +72,7 @@ export function GameProvider({ children }) {
 
       if (!aiDecision) {
         console.warn("IA: No pudo tomar una decisión, usando movimiento de emergencia")
-        return makeEmergencyAIMove()
+        return makeEmergencyAIMove(currentWallMode)
       }
 
       console.log("IA: Decisión tomada", aiDecision)
@@ -79,26 +82,55 @@ export function GameProvider({ children }) {
         // Verificar que el movimiento es válido
         if (!validMoves.some((move) => move.x === aiDecision.x && move.z === aiDecision.z)) {
           console.error("IA: Movimiento inválido", aiDecision)
-          return makeEmergencyAIMove()
+          return makeEmergencyAIMove(currentWallMode)
         }
-        makeMove(aiDecision.x, aiDecision.z)
+
+        // Crear un estado temporal con wallMode = false para el movimiento
+        const tempState = { ...state, wallMode: false }
+
+        // Ejecutar el movimiento directamente
+        const newState = QuoridorLogic.makeMove(aiDecision.x, aiDecision.z, tempState)
+
+        // Restaurar el wallMode original para el jugador humano
+        setState({
+          ...newState,
+          wallMode: currentWallMode,
+        })
+
+        setSelectedTile(null)
+        setLastAction("movement")
+        setSoundTrigger((prev) => prev + 1)
       } else if (aiDecision.type === "wall") {
         // Verificar que el muro es válido
         if (
           !QuoridorLogic.isValidWallPlacement(
             { x: aiDecision.x, z: aiDecision.z, orientation: aiDecision.orientation },
-            state,
+            { ...state, wallMode: true },
           )
         ) {
           console.error("IA: Muro inválido", aiDecision)
-          return makeEmergencyAIMove()
+          return makeEmergencyAIMove(currentWallMode)
         }
-        // Colocar el muro directamente sin cambiar el modo
-        placeWallDirectly(aiDecision.x, aiDecision.z, aiDecision.orientation)
+
+        // Crear un estado temporal con wallMode = true para colocar el muro
+        const tempState = { ...state, wallMode: true }
+
+        // Colocar el muro directamente
+        const newState = QuoridorLogic.placeWall(aiDecision.x, aiDecision.z, aiDecision.orientation, tempState)
+
+        // Restaurar el wallMode original para el jugador humano
+        setState({
+          ...newState,
+          wallMode: currentWallMode,
+        })
+
+        setHoveredWallPosition(null)
+        setLastAction("wall")
+        setSoundTrigger((prev) => prev + 1)
       } else {
         // Si llegamos aquí, la decisión no tiene un tipo válido
         console.error("IA: Tipo de decisión inválido", aiDecision)
-        return makeEmergencyAIMove()
+        return makeEmergencyAIMove(currentWallMode)
       }
     } catch (error) {
       console.error("IA: Error en makeAIMove", error)
@@ -107,8 +139,8 @@ export function GameProvider({ children }) {
     }
   }
 
-  // Mejorar el movimiento de emergencia para la IA
-  const makeEmergencyAIMove = () => {
+  // Modificar el movimiento de emergencia para que también preserve el wallMode
+  const makeEmergencyAIMove = (currentWallMode = state.wallMode) => {
     console.log("IA: Ejecutando movimiento de emergencia")
 
     // Incrementar contador de intentos
@@ -122,7 +154,22 @@ export function GameProvider({ children }) {
         // Si hay movimientos válidos, elegir uno aleatorio
         const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)]
         console.log("IA: Movimiento de emergencia", randomMove)
-        makeMove(randomMove.x, randomMove.z)
+
+        // Crear un estado temporal con wallMode = false para el movimiento
+        const tempState = { ...state, wallMode: false }
+
+        // Ejecutar el movimiento directamente
+        const newState = QuoridorLogic.makeMove(randomMove.x, randomMove.z, tempState)
+
+        // Restaurar el wallMode original para el jugador humano
+        setState({
+          ...newState,
+          wallMode: currentWallMode,
+        })
+
+        setSelectedTile(null)
+        setLastAction("movement")
+        setSoundTrigger((prev) => prev + 1)
         return
       }
 
@@ -136,9 +183,24 @@ export function GameProvider({ children }) {
 
           const wallPos = { x, z, orientation }
 
-          if (QuoridorLogic.isValidWallPlacement(wallPos, state)) {
+          if (QuoridorLogic.isValidWallPlacement(wallPos, { ...state, wallMode: true })) {
             console.log("IA: Muro de emergencia", wallPos)
-            placeWallDirectly(x, z, orientation)
+
+            // Crear un estado temporal con wallMode = true para colocar el muro
+            const tempState = { ...state, wallMode: true }
+
+            // Colocar el muro directamente
+            const newState = QuoridorLogic.placeWall(x, z, orientation, tempState)
+
+            // Restaurar el wallMode original para el jugador humano
+            setState({
+              ...newState,
+              wallMode: currentWallMode,
+            })
+
+            setHoveredWallPosition(null)
+            setLastAction("wall")
+            setSoundTrigger((prev) => prev + 1)
             return
           }
         }
@@ -147,31 +209,33 @@ export function GameProvider({ children }) {
       // Si todavía estamos aquí y no hemos superado el máximo de intentos, intentar de nuevo
       if (aiRetryCountRef.current < MAX_AI_RETRIES) {
         console.log(`IA: Reintentando movimiento de emergencia (intento ${aiRetryCountRef.current})`)
-        setTimeout(makeEmergencyAIMove, 500)
+        setTimeout(() => makeEmergencyAIMove(currentWallMode), 500)
         return
       }
 
       // Si todo falla, forzar el cambio de turno
       console.error("IA: No se pudo encontrar un movimiento válido")
       setAiError("La IA está teniendo problemas para encontrar un movimiento válido")
-
-      // Forzar el cambio de turno
-      setState((prevState) => ({
-        ...prevState,
-        currentPlayer: 0,
-        validMoves: QuoridorLogic.getValidMoves(0, prevState),
-      }))
+      setAiStuck(true)
     } catch (error) {
       console.error("IA: Error en el movimiento de emergencia", error)
       setAiError("La IA está teniendo problemas para calcular su movimiento")
-
-      // Forzar el cambio de turno
-      setState((prevState) => ({
-        ...prevState,
-        currentPlayer: 0,
-        validMoves: QuoridorLogic.getValidMoves(0, prevState),
-      }))
+      setAiStuck(true)
     }
+  }
+
+  // Forzar el siguiente turno cuando la IA está bloqueada
+  const forceNextTurn = () => {
+    const currentWallMode = state.wallMode
+    setState((prevState) => ({
+      ...prevState,
+      currentPlayer: 0,
+      validMoves: QuoridorLogic.getValidMoves(0, prevState),
+      wallMode: currentWallMode, // Mantener el modo actual
+    }))
+    setAiStuck(false)
+    setAiError(null)
+    triggerSound()
   }
 
   // Modificar el efecto que maneja el turno de la IA para incluir un temporizador de seguridad más robusto
@@ -185,6 +249,7 @@ export function GameProvider({ children }) {
 
       // Reiniciar contador de intentos
       aiRetryCountRef.current = 0
+      setAiStuck(false)
 
       // Añadir un pequeño retraso para que la IA parezca que está "pensando"
       setIsAIThinking(true)
@@ -259,12 +324,14 @@ export function GameProvider({ children }) {
     setIsAIMode(false)
     setAiPlayer(null)
     setAiError(null)
+    setAiStuck(false)
     triggerSound()
   }
 
   // Añadir una nueva función para colocar muros directamente sin cambiar el modo
   const placeWallDirectly = (x, z, orientation) => {
-    const newState = QuoridorLogic.placeWall(x, z, orientation, state)
+    const wallState = { ...state, wallMode: true }
+    const newState = QuoridorLogic.placeWall(x, z, orientation, wallState)
     setState(newState)
     setHoveredWallPosition(null)
     setLastAction("wall")
@@ -324,6 +391,7 @@ export function GameProvider({ children }) {
     setHoveredWallPosition(null)
     setLastAction("click")
     setAiError(null)
+    setAiStuck(false)
     triggerClickSound()
   }
 
@@ -359,7 +427,6 @@ export function GameProvider({ children }) {
     placeWall,
   }
 
-  // Eliminar aiStuck y forceNextTurn del valor del contexto
   return (
     <GameContext.Provider
       value={{
@@ -375,6 +442,7 @@ export function GameProvider({ children }) {
         aiDifficulty,
         isAIThinking,
         aiError,
+        aiStuck,
         setSelectedTile,
         setHoveredWallPosition,
         startGame,
@@ -386,6 +454,7 @@ export function GameProvider({ children }) {
         toggleDarkMode,
         returnToMenu,
         triggerSound,
+        forceNextTurn,
       }}
     >
       {children}

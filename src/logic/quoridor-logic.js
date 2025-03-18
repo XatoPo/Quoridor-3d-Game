@@ -173,45 +173,41 @@ export function getValidMoves(playerIndex, gameState) {
 
   // Handle jumps over opponent
   if (Math.abs(player.x - opponent.x) + Math.abs(player.z - opponent.z) === 1) {
-    // Calculate straight jump position
-    const jumpX = opponent.x + (opponent.x - player.x)
-    const jumpZ = opponent.z + (opponent.z - player.z)
+    // First check if there's a wall between the player and opponent
+    if (!isMovementBlocked(player.x, player.z, opponent.x, opponent.z, walls)) {
+      // Calculate straight jump position
+      const jumpX = opponent.x + (opponent.x - player.x)
+      const jumpZ = opponent.z + (opponent.z - player.z)
 
-    // Check if straight jump is possible
-    if (isWithinBoard(jumpX, jumpZ) && !isMovementBlocked(opponent.x, opponent.z, jumpX, jumpZ, walls)) {
-      validMoves.push({ x: jumpX, z: jumpZ })
-    } else {
-      // If straight jump is blocked or out of bounds, check diagonal jumps
-      const diagonalJumps = []
+      // Check if straight jump is possible
+      if (isWithinBoard(jumpX, jumpZ) && !isMovementBlocked(opponent.x, opponent.z, jumpX, jumpZ, walls)) {
+        validMoves.push({ x: jumpX, z: jumpZ })
+      } else if (isWithinBoard(jumpX, jumpZ)) {
+        // If straight jump is blocked by a wall or out of bounds, check diagonal jumps
+        const diagonalJumps = []
 
-      // Add all possible diagonal jumps
-      if (player.x === opponent.x) {
-        // Vertical alignment - check horizontal diagonals
-        diagonalJumps.push({ x: opponent.x + 1, z: opponent.z })
-        diagonalJumps.push({ x: opponent.x - 1, z: opponent.z })
-      } else {
-        // Horizontal alignment - check vertical diagonals
-        diagonalJumps.push({ x: opponent.x, z: opponent.z + 1 })
-        diagonalJumps.push({ x: opponent.x, z: opponent.z - 1 })
-      }
+        // Add all possible diagonal jumps
+        if (player.x === opponent.x) {
+          // Vertical alignment - check horizontal diagonals
+          diagonalJumps.push({ x: opponent.x + 1, z: opponent.z })
+          diagonalJumps.push({ x: opponent.x - 1, z: opponent.z })
+        } else {
+          // Horizontal alignment - check vertical diagonals
+          diagonalJumps.push({ x: opponent.x, z: opponent.z + 1 })
+          diagonalJumps.push({ x: opponent.x, z: opponent.z - 1 })
+        }
 
-      // Filter valid diagonal jumps
-      const validDiagonalJumps = diagonalJumps.filter((jump) => {
-        return (
-          isWithinBoard(jump.x, jump.z) &&
-          !isMovementBlocked(opponent.x, opponent.z, jump.x, jump.z, walls) &&
-          !(jump.x === player.x && jump.z === player.z) &&
-          !gameState.walls.some((wall) =>
-            doWallsOverlap(wall, {
-              x: Math.min(opponent.x, jump.x),
-              z: Math.min(opponent.z, jump.z),
-              orientation: player.x === opponent.x ? "vertical" : "horizontal",
-            }),
+        // Filter valid diagonal jumps
+        const validDiagonalJumps = diagonalJumps.filter((jump) => {
+          return (
+            isWithinBoard(jump.x, jump.z) &&
+            !isMovementBlocked(opponent.x, opponent.z, jump.x, jump.z, walls) &&
+            !(jump.x === player.x && jump.z === player.z)
           )
-        )
-      })
+        })
 
-      validMoves.push(...validDiagonalJumps)
+        validMoves.push(...validDiagonalJumps)
+      }
     }
   }
 
@@ -303,25 +299,39 @@ function getAllPossibleMoves(x, z, opponent, walls) {
 
   // Check for jump moves if adjacent to opponent
   if (Math.abs(x - opponent.x) + Math.abs(z - opponent.z) === 1) {
-    // Straight jump
-    const jumpX = opponent.x + (opponent.x - x)
-    const jumpZ = opponent.z + (opponent.z - z)
+    // Only check jumps if there's no wall between the player and opponent
+    if (!isMovementBlocked(x, z, opponent.x, opponent.z, walls)) {
+      // Straight jump
+      const jumpX = opponent.x + (opponent.x - x)
+      const jumpZ = opponent.z + (opponent.z - z)
 
-    if (isWithinBoard(jumpX, jumpZ)) {
-      if (!isMovementBlocked(opponent.x, opponent.z, jumpX, jumpZ, walls)) {
-        moves.push({ x: jumpX, z: jumpZ })
-      } else {
-        // Diagonal jumps when straight jump is blocked
-        const diagonalJumps = [
-          { x: opponent.x + 1, z: opponent.z },
-          { x: opponent.x - 1, z: opponent.z },
-          { x: opponent.x, z: opponent.z + 1 },
-          { x: opponent.x, z: opponent.z - 1 },
-        ]
+      if (isWithinBoard(jumpX, jumpZ)) {
+        if (!isMovementBlocked(opponent.x, opponent.z, jumpX, jumpZ, walls)) {
+          moves.push({ x: jumpX, z: jumpZ })
+        } else {
+          // Diagonal jumps when straight jump is blocked
+          const diagonalJumps = []
 
-        for (const jump of diagonalJumps) {
-          if (isValidMove(jump.x, jump.z, opponent.x, opponent.z, { x, z }, walls)) {
-            moves.push(jump)
+          // Add appropriate diagonal jumps based on alignment
+          if (x === opponent.x) {
+            // Vertical alignment - check horizontal diagonals
+            diagonalJumps.push({ x: opponent.x + 1, z: opponent.z })
+            diagonalJumps.push({ x: opponent.x - 1, z: opponent.z })
+          } else {
+            // Horizontal alignment - check vertical diagonals
+            diagonalJumps.push({ x: opponent.x, z: opponent.z + 1 })
+            diagonalJumps.push({ x: opponent.x, z: opponent.z - 1 })
+          }
+
+          // Filter valid diagonal jumps
+          for (const jump of diagonalJumps) {
+            if (
+              isWithinBoard(jump.x, jump.z) &&
+              !isMovementBlocked(opponent.x, opponent.z, jump.x, jump.z, walls) &&
+              !(jump.x === x && jump.z === z)
+            ) {
+              moves.push(jump)
+            }
           }
         }
       }

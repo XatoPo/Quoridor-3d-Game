@@ -11,31 +11,31 @@ import ConfettiEffect from "./confetti-effect"
 import { Vector3 } from "three"
 import * as THREE from "three"
 
-// Update the color palette to be more consistent and minimalist
+// Paleta de colores mejorada con mayor contraste y coherencia visual
 const COLORS = {
   board: {
-    light: "#E2E8F0", // Light gray
-    dark: "#CBD5E1", // Darker gray
-    p1Goal: "#FEE2E2", // Light red for player 1 goal
-    p2Goal: "#DBEAFE", // Light blue for player 2 goal
-    base: "#F8FAFC", // Off-white base
+    light: "#E5E9F0", // Gris claro más suave
+    dark: "#D8DEE9", // Gris más oscuro con tono azulado
+    p1Goal: "#FFCDD2", // Rojo claro más suave para meta del jugador 1
+    p2Goal: "#BBDEFB", // Azul claro más suave para meta del jugador 2
+    base: "#ECEFF4", // Base blanca con tono azulado
     darkMode: {
-      light: "#1E293B", // Dark slate gray
-      dark: "#0F172A", // Darker slate
-      p1Goal: "#7F1D1D", // Dark red
-      p2Goal: "#1E3A8A", // Dark blue
-      base: "#0F172A", // Dark slate
+      light: "#2E3440", // Gris oscuro con tono azulado
+      dark: "#1E2430", // Gris más oscuro para contraste
+      p1Goal: "#5E2A2A", // Rojo oscuro para meta del jugador 1
+      p2Goal: "#2A3F5E", // Azul oscuro para meta del jugador 2
+      base: "#1A1E27", // Base oscura con tono azulado
     },
   },
   players: {
-    p1: "#EF4444", // Vibrant red
-    p2: "#3B82F6", // Vibrant blue
+    p1: "#EF5350", // Rojo vibrante
+    p2: "#42A5F5", // Azul vibrante
   },
   walls: {
-    placed: "#666A73", // Gray for walls
+    placed: "#5E6472", // Gris para muros
     preview: {
-      valid: "#22C55E", // Green
-      invalid: "#DC2626", // Red
+      valid: "#66BB6A", // Verde para muros válidos
+      invalid: "#EF5350", // Rojo para muros inválidos
     },
   },
 }
@@ -44,31 +44,35 @@ export default function GameBoard() {
   const boardRef = useRef()
   const { gameState, selectedTile, hoveredWallPosition, isDarkMode } = useGameContext()
 
-  // Helper to determine tile color with dark mode support
+  // Función para determinar el color de la casilla con soporte para modo oscuro
   const getTileColor = (x, z) => {
     const colors = isDarkMode ? COLORS.board.darkMode : COLORS.board
 
-    if (z === 0) return colors.p1Goal // Player 1 goal row
-    if (z === 8) return colors.p2Goal // Player 2 goal row
+    if (z === 0) return colors.p1Goal // Fila meta del jugador 1
+    if (z === 8) return colors.p2Goal // Fila meta del jugador 2
     return (x + z) % 2 === 0 ? colors.light : colors.dark
   }
 
   return (
     <group ref={boardRef}>
-      {/* Animated background */}
+      {/* Fondo animado */}
       <AnimatedBackground />
 
-      {/* Board base */}
+      {/* Base del tablero */}
       <mesh receiveShadow position={[0, -0.1, 0]}>
         <boxGeometry args={[10, 0.2, 10]} />
-        <meshStandardMaterial color={isDarkMode ? COLORS.board.darkMode.base : COLORS.board.base} roughness={0.7} />
+        <meshStandardMaterial
+          color={isDarkMode ? COLORS.board.darkMode.base : COLORS.board.base}
+          roughness={0.7}
+          metalness={0.1}
+        />
         <lineSegments>
           <edgesGeometry args={[new THREE.BoxGeometry(10, 0.2, 10)]} />
-          <lineBasicMaterial color={isDarkMode ? "#94A3B8" : "#475569"} linewidth={1.5} />
+          <lineBasicMaterial color={isDarkMode ? "#88C0D0" : "#5E81AC"} linewidth={1.5} />
         </lineSegments>
       </mesh>
 
-      {/* Board grid */}
+      {/* Cuadrícula del tablero */}
       {Array.from({ length: 9 }).map((_, x) =>
         Array.from({ length: 9 }).map((_, z) => (
           <BoardTile
@@ -83,10 +87,10 @@ export default function GameBoard() {
         )),
       )}
 
-      {/* Wall placement grid */}
+      {/* Cuadrícula para colocación de muros */}
       <WallGrid />
 
-      {/* Placed walls */}
+      {/* Muros colocados */}
       {gameState.walls.map((wall, index) => (
         <SimpleWall
           key={`wall-${index}`}
@@ -101,7 +105,7 @@ export default function GameBoard() {
         />
       ))}
 
-      {/* Hovered wall preview */}
+      {/* Vista previa del muro al pasar el cursor */}
       {hoveredWallPosition && (
         <SimpleWall
           position={[
@@ -121,7 +125,7 @@ export default function GameBoard() {
         />
       )}
 
-      {/* Player pieces */}
+      {/* Fichas de los jugadores */}
       <PlayerPiece
         position={new Vector3(gameState.players[0].x - 4, 0.3, gameState.players[0].z - 4)}
         color={COLORS.players.p1}
@@ -133,14 +137,14 @@ export default function GameBoard() {
         isCurrentPlayer={gameState.currentPlayer === 1}
       />
 
-      {/* Wall counters with improved visuals */}
+      {/* Contadores de muros con visuales mejorados */}
       <group position={[-5, 0.5, 0]}>
         <mesh position={[0, -0.05, 0]}>
           <boxGeometry args={[1, 0.1, 1]} />
-          <meshStandardMaterial color={isDarkMode ? "#1E293B" : "#F1F5F9"} roughness={0.7} />
+          <meshStandardMaterial color={isDarkMode ? "#2E3440" : "#ECEFF4"} roughness={0.7} />
           <lineSegments>
             <edgesGeometry args={[new THREE.BoxGeometry(1, 0.1, 1)]} />
-            <lineBasicMaterial color={isDarkMode ? "#94A3B8" : "#475569"} />
+            <lineBasicMaterial color={isDarkMode ? "#88C0D0" : "#5E81AC"} />
           </lineSegments>
         </mesh>
         {Array.from({ length: gameState.players[0].wallsLeft }).map((_, i) => (
@@ -148,15 +152,15 @@ export default function GameBoard() {
             <mesh>
               <boxGeometry args={[0.8, 0.08, 0.8]} />
               <meshStandardMaterial
-                color={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FCA5A5"}
+                color={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FFCDD2"}
                 roughness={0.7}
-                emissive={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FCA5A5"}
+                emissive={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FFCDD2"}
                 emissiveIntensity={isDarkMode ? 0.3 : 0}
               />
             </mesh>
             <lineSegments>
               <edgesGeometry args={[new THREE.BoxGeometry(0.8, 0.08, 0.8)]} />
-              <lineBasicMaterial color={isDarkMode ? "#94A3B8" : "#475569"} />
+              <lineBasicMaterial color={isDarkMode ? "#88C0D0" : "#5E81AC"} />
             </lineSegments>
           </group>
         ))}
@@ -165,10 +169,10 @@ export default function GameBoard() {
       <group position={[5, 0.5, 0]}>
         <mesh position={[0, -0.05, 0]}>
           <boxGeometry args={[1, 0.1, 1]} />
-          <meshStandardMaterial color={isDarkMode ? "#1E293B" : "#F1F5F9"} roughness={0.7} />
+          <meshStandardMaterial color={isDarkMode ? "#2E3440" : "#ECEFF4"} roughness={0.7} />
           <lineSegments>
             <edgesGeometry args={[new THREE.BoxGeometry(1, 0.1, 1)]} />
-            <lineBasicMaterial color={isDarkMode ? "#94A3B8" : "#475569"} />
+            <lineBasicMaterial color={isDarkMode ? "#88C0D0" : "#5E81AC"} />
           </lineSegments>
         </mesh>
         {Array.from({ length: gameState.players[1].wallsLeft }).map((_, i) => (
@@ -176,21 +180,21 @@ export default function GameBoard() {
             <mesh>
               <boxGeometry args={[0.8, 0.08, 0.8]} />
               <meshStandardMaterial
-                color={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#93C5FD"}
+                color={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#BBDEFB"}
                 roughness={0.7}
-                emissive={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#93C5FD"}
+                emissive={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#BBDEFB"}
                 emissiveIntensity={isDarkMode ? 0.3 : 0}
               />
             </mesh>
             <lineSegments>
               <edgesGeometry args={[new THREE.BoxGeometry(0.8, 0.08, 0.8)]} />
-              <lineBasicMaterial color={isDarkMode ? "#94A3B8" : "#475569"} />
+              <lineBasicMaterial color={isDarkMode ? "#88C0D0" : "#5E81AC"} />
             </lineSegments>
           </group>
         ))}
       </group>
 
-      {/* Victory confetti effect */}
+      {/* Efecto de confeti para la victoria */}
       {gameState.winner !== null && <ConfettiEffect />}
     </group>
   )

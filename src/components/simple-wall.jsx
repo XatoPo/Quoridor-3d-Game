@@ -14,36 +14,36 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
   const { isDarkMode } = useGameContext()
   const initialY = position[1]
 
-  // Enhanced animation for walls
+  // Mejorar animación para muros
   useFrame((state) => {
     if (ref.current) {
       if (isHovered) {
-        // More dynamic hover animation
+        // Animación más dinámica al pasar el cursor
         ref.current.position.y = initialY + Math.sin(state.clock.elapsedTime * 3) * 0.08
 
-        // Slight rotation effect for hover
+        // Efecto de rotación sutil al pasar el cursor
         ref.current.rotation.y = Math.sin(state.clock.elapsedTime * 2) * 0.03
 
-        // Scale pulse effect for invalid placements
+        // Efecto de pulso de escala para colocaciones inválidas
         if (!isValid) {
           ref.current.scale.y = 1 + Math.sin(state.clock.elapsedTime * 5) * 0.1
         }
       } else if (isPlaced) {
-        // Small settling animation for newly placed walls
-        const age = state.clock.elapsedTime % 1000 // Avoid growing too large
+        // Pequeña animación de asentamiento para muros recién colocados
+        const age = state.clock.elapsedTime % 1000 // Evitar que crezca demasiado
         const isNew = age < 0.5
 
         if (isNew) {
-          // Settling bounce effect
+          // Efecto de rebote al asentarse
           const bounceHeight = Math.max(0, 0.2 * (1 - age * 2))
           ref.current.position.y = initialY + bounceHeight
 
-          // Slight scale effect
+          // Efecto de escala sutil
           const scaleEffect = 1 + Math.max(0, 0.2 * (1 - age * 2))
           ref.current.scale.x = orientation === "horizontal" ? scaleEffect : 1
           ref.current.scale.z = orientation === "vertical" ? scaleEffect : 1
         } else {
-          // Reset to normal
+          // Volver a la normalidad
           ref.current.position.y = initialY
           ref.current.scale.x = 1
           ref.current.scale.z = 1
@@ -52,7 +52,7 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
     }
   })
 
-  // Wall dimensions based on orientation
+  // Dimensiones del muro según orientación
   const dimensions =
     orientation === "horizontal"
       ? [WALL_LENGTH, WALL_HEIGHT, WALL_THICKNESS]
@@ -60,7 +60,7 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
 
   const opacity = isPlaced ? 1 : isHovered ? 0.8 : 0.5
 
-  // Adjust position to align with the gaps between tiles
+  // Ajustar posición para alinear con los espacios entre casillas
   const adjustedPosition = [
     position[0] + (orientation === "horizontal" ? 0.45 : 0),
     position[1],
@@ -69,7 +69,7 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
 
   return (
     <group>
-      {/* Main wall with enhanced material */}
+      {/* Muro principal con material mejorado */}
       <mesh ref={ref} position={adjustedPosition} castShadow receiveShadow>
         <boxGeometry args={[dimensions[0], dimensions[1], dimensions[2]]} />
         <meshStandardMaterial
@@ -83,11 +83,11 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
         />
         <lineSegments>
           <edgesGeometry args={[new THREE.BoxGeometry(...dimensions)]} />
-          <lineBasicMaterial color={isDarkMode ? "#94A3B8" : "#475569"} transparent opacity={0.8} />
+          <lineBasicMaterial color={isDarkMode ? "#88C0D0" : "#5E81AC"} transparent opacity={0.8} />
         </lineSegments>
       </mesh>
 
-      {/* Add subtle glowing effect for placed walls in dark mode */}
+      {/* Añadir efecto de brillo sutil para muros colocados en modo oscuro */}
       {isPlaced && isDarkMode && (
         <mesh position={adjustedPosition}>
           <boxGeometry args={dimensions.map((d) => d * 1.05)} />
@@ -95,10 +95,10 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
         </mesh>
       )}
 
-      {/* Highlight affected grid cells when hovering */}
+      {/* Resaltar celdas afectadas al pasar el cursor */}
       {isHovered && (
         <group>
-          {/* First affected cell */}
+          {/* Primera celda afectada */}
           <mesh
             position={[
               position[0] + (orientation === "vertical" ? -0.45 : 0),
@@ -108,10 +108,10 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
             rotation={[-Math.PI / 2, 0, 0]}
           >
             <planeGeometry args={[0.9, 0.9]} />
-            <meshBasicMaterial color={isValid ? "#86EFAC" : "#FCA5A5"} transparent opacity={0.4} toneMapped={false} />
+            <meshBasicMaterial color={isValid ? "#66BB6A" : "#EF5350"} transparent opacity={0.4} toneMapped={false} />
           </mesh>
 
-          {/* Second affected cell */}
+          {/* Segunda celda afectada */}
           <mesh
             position={[
               position[0] + (orientation === "vertical" ? 0.45 : 0),
@@ -121,7 +121,7 @@ export default function SimpleWall({ position, orientation, isPlaced, isHovered 
             rotation={[-Math.PI / 2, 0, 0]}
           >
             <planeGeometry args={[0.9, 0.9]} />
-            <meshBasicMaterial color={isValid ? "#86EFAC" : "#FCA5A5"} transparent opacity={0.4} toneMapped={false} />
+            <meshBasicMaterial color={isValid ? "#66BB6A" : "#EF5350"} transparent opacity={0.4} toneMapped={false} />
           </mesh>
         </group>
       )}

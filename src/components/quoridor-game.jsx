@@ -53,9 +53,9 @@ function Game() {
           shadows
           camera={{ position: [0, 10, 10], fov: 45 }}
           className={`${isDarkMode ? "bg-gray-900" : "bg-gray-100"}`}
-          dpr={[1, 2]} // Limit pixel ratio for better performance
+          dpr={[1, 2]} // Limitar la relación de píxeles para un mejor rendimiento
         >
-          {/* Adjusted lighting for better visuals and dark mode support */}
+          {/* Iluminación ajustada para mejores visuales y soporte de modo oscuro */}
           <ambientLight intensity={isDarkMode ? 0.5 : 0.7} />
           <directionalLight
             position={[10, 10, 10]}
@@ -70,7 +70,7 @@ function Game() {
             shadow-camera-bottom={-10}
           />
 
-          {/* Add point light for more dramatic lighting */}
+          {/* Añadir luz puntual para iluminación más dramática */}
           <pointLight
             position={[0, 8, 0]}
             intensity={isDarkMode ? 1 : 0.5}
@@ -78,10 +78,10 @@ function Game() {
             color={isDarkMode ? "#a78bfa" : "#f0f9ff"}
           />
 
-          {/* Add fill light for better visibility in dark mode */}
+          {/* Añadir luz de relleno para mejor visibilidad en modo oscuro */}
           {isDarkMode && <pointLight position={[0, 5, -8]} intensity={0.3} distance={15} color="#94A3B8" />}
 
-          {/* Add stars background in dark mode */}
+          {/* Añadir fondo de estrellas en modo oscuro */}
           {isDarkMode && <Stars radius={100} depth={50} count={1000} factor={4} fade speed={1} />}
 
           <GameBoard />
@@ -94,7 +94,7 @@ function Game() {
             maxDistance={20}
             enableDamping={true}
             dampingFactor={0.05}
-            // Adjust touch controls for mobile
+            // Ajustar controles táctiles para móviles
             rotateSpeed={isMobile ? 0.7 : 1}
             zoomSpeed={isMobile ? 0.7 : 1}
             panSpeed={isMobile ? 0.7 : 1}

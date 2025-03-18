@@ -87,12 +87,13 @@ export default function WelcomeScreen() {
       className={`fixed inset-0 flex items-center justify-center bg-gradient-to-b from-blue-100 to-purple-100 dark:from-gray-900 dark:to-purple-950 z-50
     transition-opacity duration-500 ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
     >
+      {/* Restaurar los botones de modo oscuro y sonido */}
       <div className="absolute top-4 right-4 flex gap-2">
         <Button
           variant="outline"
           size="icon"
           onClick={handleToggleDarkMode}
-          className="bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-white"
+          className="bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-white border border-gray-200 dark:border-gray-700"
         >
           {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
@@ -100,23 +101,27 @@ export default function WelcomeScreen() {
           variant="outline"
           size="icon"
           onClick={handleToggleMuted}
-          className="bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-white"
+          className="bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-white border border-gray-200 dark:border-gray-700"
         >
           {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
         </Button>
       </div>
 
+      {/* Mejorar la pantalla de bienvenida con un diseño más atractivo y moderno */}
       <Card className="max-w-md w-full mx-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur shadow-xl border-none transition-all duration-300 transform">
         <CardHeader className="text-center pb-2">
           <div className="w-32 h-32 mx-auto mb-2">
             <div className="relative w-full h-full">
-              <div className="absolute w-12 h-12 bg-red-500 rounded-full top-4 left-4 shadow-md" />
-              <div className="absolute w-12 h-12 bg-blue-500 rounded-full bottom-4 right-4 shadow-md" />
-              <div className="absolute w-full h-2 bg-purple-700 rotate-45 top-1/2 left-0 transform -translate-y-1/2" />
-              <div className="absolute w-full h-2 bg-purple-700 -rotate-45 top-1/2 left-0 transform -translate-y-1/2" />
+              {/* Animación mejorada del logo */}
+              <div className="absolute w-12 h-12 bg-red-500 rounded-full top-4 left-4 shadow-md animate-pulse" />
+              <div className="absolute w-12 h-12 bg-blue-500 rounded-full bottom-4 right-4 shadow-md animate-pulse" />
+              <div className="absolute w-full h-2 bg-indigo-700 rotate-45 top-1/2 left-0 transform -translate-y-1/2" />
+              <div className="absolute w-full h-2 bg-indigo-700 -rotate-45 top-1/2 left-0 transform -translate-y-1/2" />
             </div>
           </div>
-          <CardTitle className="text-4xl font-bold text-purple-700 dark:text-purple-400">Quoridor 3D</CardTitle>
+          <CardTitle className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            Quoridor 3D
+          </CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-300">
             El clásico juego de estrategia en un entorno 3D
           </CardDescription>
@@ -130,7 +135,7 @@ export default function WelcomeScreen() {
             </p>
           ) : (
             <div className="text-left space-y-3 py-2">
-              <h3 className="font-semibold text-purple-600 dark:text-purple-400">Créditos</h3>
+              <h3 className="font-semibold text-indigo-600 dark:text-indigo-400">Créditos</h3>
               <p className="text-sm text-gray-700 dark:text-gray-200">
                 Diseñado y desarrollado por: <span className="font-semibold">Flavio Villanueva Medina</span>
               </p>
@@ -170,21 +175,21 @@ export default function WelcomeScreen() {
           {!showCredits ? (
             <>
               <Button
-              variant=""
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold" 
-                onClick={handleStart}>
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold"
+                onClick={handleStart}
+              >
                 Jugar 2 Jugadores (Local)
               </Button>
               <Button
                 variant="default"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold"
                 onClick={handleShowAIModal}
               >
                 VS IA (Alpha)
               </Button>
               <Button
-              variant=""
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                variant=""
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold"
                 onClick={handleShowOnlineModal}
               >
                 Jugar Online
@@ -337,9 +342,7 @@ export default function WelcomeScreen() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">5% completado</p>
               </div>
 
-              <Button 
-                variant=""
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCloseOnlineModal}>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCloseOnlineModal}>
                 Entendido
               </Button>
             </div>

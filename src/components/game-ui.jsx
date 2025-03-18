@@ -22,7 +22,8 @@ import {
   SkipForward,
 } from "lucide-react"
 
-// Color palette matching the game board
+// Mejorar la interfaz de usuario con un diseño más limpio y moderno
+// Actualizar la paleta de colores para mayor coherencia
 const COLORS = {
   ui: {
     background: "bg-white/90 dark:bg-gray-800/90",
@@ -43,7 +44,7 @@ const COLORS = {
     },
   },
   actions: {
-    primary: "bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-600",
+    primary: "bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-700 dark:hover:bg-indigo-600",
     secondary: "bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200",
     outline: "border border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700",
     danger: "bg-red-600 hover:bg-red-700 text-white dark:bg-red-700 dark:hover:bg-red-600",
@@ -246,6 +247,7 @@ export default function GameUI() {
     <>
       {/* Game info panel */}
       <div className="absolute top-4 left-4 z-10">
+        {/* Actualizar el panel de información del juego para que sea más claro y atractivo */}
         <Card
           className={`p-4 ${COLORS.ui.background} shadow-lg transition-all duration-300 backdrop-blur ${showInfo ? "w-64" : "w-16"}`}
         >

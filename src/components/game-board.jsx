@@ -91,19 +91,33 @@ export default function GameBoard() {
       <WallGrid />
 
       {/* Muros colocados */}
-      {gameState.walls.map((wall, index) => (
-        <SimpleWall
-          key={`wall-${index}`}
-          position={[
-            wall.x - 4 + (wall.orientation === "vertical" ? 0.5 : 0),
-            0.5,
-            wall.z - 4 + (wall.orientation === "horizontal" ? 0.5 : 0),
-          ]}
-          orientation={wall.orientation}
-          isPlaced={true}
-          color={COLORS.walls.placed}
-        />
-      ))}
+      {gameState.walls.map((wall, index) => {
+        // Determinar el color del muro según el jugador que lo colocó
+        // Si el índice es par, lo colocó el jugador 1 (rojo), si es impar, el jugador 2 (azul)
+        const wallColor =
+          index % 2 === 0
+            ? isDarkMode
+              ? "#BF616A"
+              : "#EF5350"
+            : // Rojo para jugador 1
+              isDarkMode
+              ? "#5E81AC"
+              : "#42A5F5" // Azul para jugador 2
+
+        return (
+          <SimpleWall
+            key={`wall-${index}`}
+            position={[
+              wall.x - 4 + (wall.orientation === "vertical" ? 0.5 : 0),
+              0.5,
+              wall.z - 4 + (wall.orientation === "horizontal" ? 0.5 : 0),
+            ]}
+            orientation={wall.orientation}
+            isPlaced={true}
+            color={wallColor}
+          />
+        )
+      })}
 
       {/* Vista previa del muro al pasar el cursor */}
       {hoveredWallPosition && (

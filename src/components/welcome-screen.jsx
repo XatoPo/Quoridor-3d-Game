@@ -165,7 +165,7 @@ export default function WelcomeScreen() {
                 Basado en el juego de mesa Quoridor creado por Mirko Marchesi.
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                Agradecimientos a el amor de mi vida Romina Soerly Elescano Lazaro.
+                Agradecimientos a el amor de mi vida y directora de QA Romina Soerly Elescano Lazaro.
               </p>
             </div>
           )}
@@ -342,7 +342,9 @@ export default function WelcomeScreen() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">5% completado</p>
               </div>
 
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCloseOnlineModal}>
+              <Button 
+                variant=""
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCloseOnlineModal}>
                 Entendido
               </Button>
             </div>

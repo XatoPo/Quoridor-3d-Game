@@ -35,6 +35,15 @@ function Game() {
     setIsMounted(true)
   }, [])
 
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add("dark")
+    } else {
+      document.body.classList.remove("dark")
+    }
+  }, [isDarkMode])
+
   if (!isMounted) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
@@ -59,7 +68,7 @@ function Game() {
           <ambientLight intensity={isDarkMode ? 0.5 : 0.7} />
           <directionalLight
             position={[10, 10, 10]}
-            intensity={isDarkMode ? 1 : 1}
+            intensity={isDarkMode ? 0.8 : 1}
             castShadow
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
@@ -73,13 +82,10 @@ function Game() {
           {/* Añadir luz puntual para iluminación más dramática */}
           <pointLight
             position={[0, 8, 0]}
-            intensity={isDarkMode ? 1 : 0.5}
+            intensity={isDarkMode ? 0.5 : 0.3}
             distance={20}
             color={isDarkMode ? "#a78bfa" : "#f0f9ff"}
           />
-
-          {/* Añadir luz de relleno para mejor visibilidad en modo oscuro */}
-          {isDarkMode && <pointLight position={[0, 5, -8]} intensity={0.3} distance={15} color="#94A3B8" />}
 
           {/* Añadir fondo de estrellas en modo oscuro */}
           {isDarkMode && <Stars radius={100} depth={50} count={1000} factor={4} fade speed={1} />}

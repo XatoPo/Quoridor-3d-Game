@@ -32,7 +32,8 @@ const COLORS = {
     p2: "#42A5F5", // Azul vibrante
   },
   walls: {
-    placed: "#5E6472", // Gris para muros
+    p1: "#EF5350", // Rojo para muros del jugador 1
+    p2: "#42A5F5", // Azul para muros del jugador 2
     preview: {
       valid: "#66BB6A", // Verde para muros válidos
       invalid: "#EF5350", // Rojo para muros inválidos
@@ -58,21 +59,21 @@ export default function GameBoard() {
       {/* Fondo animado */}
       <AnimatedBackground />
 
-      {/* Base del tablero */}
-      <mesh receiveShadow position={[0, -0.1, 0]}>
-        <boxGeometry args={[10, 0.2, 10]} />
+      {/* Base del tablero mejorada */}
+      <mesh receiveShadow position={[0, -0.15, 0]}>
+        <boxGeometry args={[10, 0.3, 10]} />
         <meshStandardMaterial
           color={isDarkMode ? COLORS.board.darkMode.base : COLORS.board.base}
           roughness={0.7}
           metalness={0.1}
         />
         <lineSegments>
-          <edgesGeometry args={[new THREE.BoxGeometry(10, 0.2, 10)]} />
+          <edgesGeometry args={[new THREE.BoxGeometry(10, 0.3, 10)]} />
           <lineBasicMaterial color={isDarkMode ? "#88C0D0" : "#5E81AC"} linewidth={1.5} />
         </lineSegments>
       </mesh>
 
-      {/* Cuadrícula del tablero */}
+      {/* Cuadrícula del tablero mejorada */}
       {Array.from({ length: 9 }).map((_, x) =>
         Array.from({ length: 9 }).map((_, z) => (
           <BoardTile
@@ -90,19 +91,11 @@ export default function GameBoard() {
       {/* Cuadrícula para colocación de muros */}
       <WallGrid />
 
-      {/* Muros colocados */}
+      {/* Muros colocados con colores por jugador */}
       {gameState.walls.map((wall, index) => {
         // Determinar el color del muro según el jugador que lo colocó
         // Si el índice es par, lo colocó el jugador 1 (rojo), si es impar, el jugador 2 (azul)
-        const wallColor =
-          index % 2 === 0
-            ? isDarkMode
-              ? "#BF616A"
-              : "#EF5350"
-            : // Rojo para jugador 1
-              isDarkMode
-              ? "#5E81AC"
-              : "#42A5F5" // Azul para jugador 2
+        const wallColor = index % 2 === 0 ? COLORS.walls.p1 : COLORS.walls.p2
 
         return (
           <SimpleWall
@@ -115,6 +108,7 @@ export default function GameBoard() {
             orientation={wall.orientation}
             isPlaced={true}
             color={wallColor}
+            playerIndex={index % 2}
           />
         )
       })}
@@ -136,6 +130,7 @@ export default function GameBoard() {
               ? COLORS.walls.preview.valid
               : COLORS.walls.preview.invalid
           }
+          playerIndex={gameState.currentPlayer}
         />
       )}
 
@@ -169,7 +164,7 @@ export default function GameBoard() {
                 color={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FFCDD2"}
                 roughness={0.7}
                 emissive={gameState.currentPlayer === 0 ? COLORS.players.p1 : "#FFCDD2"}
-                emissiveIntensity={isDarkMode ? 0.3 : 0}
+                emissiveIntensity={isDarkMode ? 0.2 : 0}
               />
             </mesh>
             <lineSegments>
@@ -197,7 +192,7 @@ export default function GameBoard() {
                 color={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#BBDEFB"}
                 roughness={0.7}
                 emissive={gameState.currentPlayer === 1 ? COLORS.players.p2 : "#BBDEFB"}
-                emissiveIntensity={isDarkMode ? 0.3 : 0}
+                emissiveIntensity={isDarkMode ? 0.2 : 0}
               />
             </mesh>
             <lineSegments>
@@ -210,6 +205,10 @@ export default function GameBoard() {
 
       {/* Efecto de confeti para la victoria */}
       {gameState.winner !== null && <ConfettiEffect />}
+
+      {/* Luces adicionales para mejorar la visibilidad en modo oscuro */}
+      {isDarkMode && <ambientLight intensity={0.3} />}
     </group>
   )
 }
+

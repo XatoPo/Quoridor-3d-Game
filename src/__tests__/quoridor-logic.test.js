@@ -14,14 +14,16 @@ const cloneState = (overrides = {}) => ({
 })
 
 describe("isMovementBlocked", () => {
-  it("detects vertical walls that block horizontal moves", () => {
+  // Verifica que un muro vertical impida avanzar lateralmente entre dos casillas adyacentes
+  it("detecta muros verticales que bloquean movimientos horizontales", () => {
     const walls = [{ x: 4, z: 0, orientation: "vertical" }]
     expect(isMovementBlocked(4, 0, 5, 0, walls)).toBe(true)
   })
 })
 
 describe("getValidMoves", () => {
-  it("includes direct jumps when the opponent is adjacent and space is open", () => {
+  // Comprueba que se permita un salto recto cuando el rival está adyacente y no existen muros bloqueando
+  it("incluye saltos directos cuando el oponente está adyacente y el espacio está libre", () => {
     const state = cloneState({
       players: [
         { x: 4, z: 4, wallsLeft: 10 },
@@ -33,7 +35,8 @@ describe("getValidMoves", () => {
     expect(moves).toEqual(expect.arrayContaining([{ x: 4, z: 6 }]))
   })
 
-  it("falls back to diagonal jumps when a wall blocks the straight jump", () => {
+  // Garantiza que, si un muro impide el salto recto, se habiliten saltos diagonales legales
+  it("recurre a saltos diagonales cuando un muro bloquea el salto recto", () => {
     const state = cloneState({
       players: [
         { x: 4, z: 4, wallsLeft: 10 },
@@ -48,7 +51,8 @@ describe("getValidMoves", () => {
 })
 
 describe("isValidWallPlacement", () => {
-  it("rejects walls that overlap existing ones", () => {
+  // Asegura que no se permitan muros que se solapen con otros ya colocados
+  it("rechaza muros que se superponen con los existentes", () => {
     const state = cloneState({
       walls: [{ x: 2, z: 2, orientation: "horizontal" }],
     })
@@ -59,7 +63,8 @@ describe("isValidWallPlacement", () => {
 })
 
 describe("placeWall", () => {
-  it("consumes a wall, stores it on the board, and switches turns when placement is valid", () => {
+  // Comprueba que colocar un muro válido descuente inventario, guarde el muro y cambie el turno
+  it("consume un muro, lo registra y cambia el turno cuando la colocación es válida", () => {
     const startingState = cloneState({ wallMode: true })
 
     const result = placeWall(1, 1, "horizontal", startingState)
@@ -73,7 +78,8 @@ describe("placeWall", () => {
 })
 
 describe("makeMove", () => {
-  it("moves the player, toggles the turn, and flags the winner when the goal row is reached", () => {
+  // Verifica que un movimiento ganador actualice posición, declare victoria y detenga movimientos futuros
+  it("mueve al jugador, alterna el turno y marca al ganador al alcanzar la fila objetivo", () => {
     const state = cloneState({
       players: [
         { x: 4, z: 7, wallsLeft: 10 },
